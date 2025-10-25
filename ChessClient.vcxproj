@@ -47,6 +47,7 @@
   <ItemGroup>
     <ClInclude Include="src\bishop.h" />
     <ClInclude Include="src\chess_game.h" />
+    <ClInclude Include="src\chess.h" />
     <ClInclude Include="src\king.h" />
     <ClInclude Include="src\knight.h" />
     <ClInclude Include="src\pawn.h" />
