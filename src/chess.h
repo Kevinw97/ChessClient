@@ -45,14 +45,22 @@ enum PieceType : unsigned char {
   BLACK_QUEEN,
   BLACK_KING
 };
-static bool isValidPosition(int x, int y) {
-  return (x >= 0 && x < 8 && y >= 0 && y < 8);
+
+static bool isValidPosition(Position pos) {
+
+  return (pos.x >= 0 && pos.x < 8 && pos.y >= 0 && pos.y < 8);
 }
-static int posToIndex(int x, int y) {
-  if (!isValidPosition(x, y)) {
+
+static int posToIndex(Position pos) {
+  if (!isValidPosition(pos)) {
     std::cout << "Invalid position passed to posToIndex" << std::endl;
     return -1;
   }
-  return y * 8 + x;
+  return pos.y * 8 + pos.x;
 }
+
+static bool isPositionOccupied(std::array<Square, 64> &board, Position &pos) {
+  return board[posToIndex(pos)].occupyingPiece != nullptr;
+}
+
 } // namespace chess_client

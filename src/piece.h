@@ -19,12 +19,13 @@ public:
     void setIsAlive(bool isAlive) { m_isAlive = isAlive; }
     bool isAlive() { return m_isAlive; }
     bool isBlack() { return m_isBlack; }
+    bool isOpposingPiece(Piece &piece);
     Position getPosition() { return m_Position; }
     void setPosition(int x, int y) {
         m_Position.x = x;
         m_Position.y = y;
     }
     SDL_Surface* getSurface() { return m_Surface; }
-    virtual std::vector<Position> getPossibleMoves(std::array<Square, 64> board) = 0;
+    virtual std::vector<Position> getPossibleMoves(std::array<Square, 64>& board) = 0;
 };
 } // namespace chess_client

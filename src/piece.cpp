@@ -12,4 +12,8 @@ void Piece::loadSurface(const char* filepath) {
     throw std::runtime_error("Failed to load piece surface");
   }
 }
+
+bool Piece::isOpposingPiece(Piece& piece) {
+  return piece.isBlack() != m_isBlack;
+}
 } // namespace chess_client

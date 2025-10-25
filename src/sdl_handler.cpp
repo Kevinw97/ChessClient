@@ -24,7 +24,7 @@ void RenderHandler::generateSquares(std::array<Square, 64>& board) {
   float squareHeight = static_cast<float>(m_Height / 8);
   for (int y = 0; y < 8; y++) {
     for (int x = 0; x < 8; x++) {
-      int i = posToIndex(x, y);
+      int i = posToIndex({x, y});
       board[i].pos = {x, y};
       board[i].rect = {
           x * squareWidth, 

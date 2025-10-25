@@ -40,12 +40,12 @@ void ChessGame::setupInitialPieces() {
   m_BlackPieces.insert(std::make_shared<King>(4, 0, true));
 
   for (const auto &piece : m_WhitePieces) {
-    int index = posToIndex(piece->getPosition().x, piece->getPosition().y);
+    int index = posToIndex({piece->getPosition().x, piece->getPosition().y});
     m_Board[index].occupyingPiece = piece;
   }
 
   for (const auto &piece : m_BlackPieces) {
-    int index = posToIndex(piece->getPosition().x, piece->getPosition().y);
+    int index = posToIndex({piece->getPosition().x, piece->getPosition().y});
     m_Board[index].occupyingPiece = piece;
   }
 }
@@ -73,7 +73,7 @@ void ChessGame::run() {
 }
 
 Square* ChessGame::getSquareAtPosition(int x, int y) {
-  return &m_Board[posToIndex(x, y)];
+  return &m_Board[posToIndex({x, y})];
 }
 
 void ChessGame::handleMouseClick(SDL_Event* event) {
@@ -147,8 +147,7 @@ void ChessGame::processMove(int srcX, int srcY, int dstX, int dstY) {
   std::shared_ptr<Piece> srcPiece = srcSquare->occupyingPiece;
   std::shared_ptr<Piece> dstPiece = dstSquare->occupyingPiece;
 
-  std::cout << "srcX, srcY: " << srcX << ", " << srcY << std::endl;
-  std::cout << "dstX, dstY: " << dstX << ", " << dstY << std::endl;
+  printf("Moving from (%d, %d) to (%d, %d)", srcX, srcY, dstX, dstY);
 
   if (srcPiece) {
     srcPiece->setPosition(dstX, dstY);
