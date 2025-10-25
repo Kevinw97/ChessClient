@@ -22,10 +22,10 @@ private:
     Square* m_SelectedSquare = nullptr;
     std::array<Square, 64> m_Board;
 
-    void setupInitialPieces();
+    void setupInitialPieces(std::array<Square, 64> &board);
     void gameLoop();
     void handleMouseClick(SDL_Event* event);
-    Square* getSquareAtPosition(int x, int y);
+    Square *getSquareAtPosition(std::array<Square, 64> &board, int x, int y);
     bool isCurrentPlayersTurn();
     void processMove(int srcX, int srcY, int dstX, int dstY);
     void selectSource(int x, int y);

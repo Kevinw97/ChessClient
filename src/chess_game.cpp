@@ -11,33 +11,33 @@ const int SQUARE_SIZE = WINDOW_SIZE / 8;
 ChessGame::ChessGame()
     : m_RenderHandler("Chess Game", WINDOW_SIZE, WINDOW_SIZE)
     , m_Board{} {
-  setupInitialPieces();
-  m_RenderHandler.generateSquares(m_Board);
+  m_RenderHandler.generateInitialBoard(m_Board);
+  setupInitialPieces(m_Board);
   m_RenderHandler.drawChessBoard(m_Board);
 }
 
-void ChessGame::setupInitialPieces() {
+void ChessGame::setupInitialPieces(std::array<Square, 64> &board) {
   // Generate pieces
   for (int i = 0; i < 8; i++) {
-    m_WhitePieces.insert(std::make_shared<Pawn>(i, 6, false));
-    m_BlackPieces.insert(std::make_shared<Pawn>(i, 1, true));
+    m_WhitePieces.insert(std::make_shared<Pawn>(&board[posToIndex({i, 6})], false));
+    m_BlackPieces.insert(std::make_shared<Pawn>(&board[posToIndex({i, 1})], true));
   }
-  m_WhitePieces.insert(std::make_shared<Rook>(0, 7, false));
-  m_WhitePieces.insert(std::make_shared<Rook>(7, 7, false));
-  m_WhitePieces.insert(std::make_shared<Knight>(1, 7, false));
-  m_WhitePieces.insert(std::make_shared<Knight>(6, 7, false));
-  m_WhitePieces.insert(std::make_shared<Bishop>(2, 7, false));
-  m_WhitePieces.insert(std::make_shared<Bishop>(5, 7, false));
-  m_WhitePieces.insert(std::make_shared<Queen>(3, 7, false));
-  m_WhitePieces.insert(std::make_shared<King>(4, 7, false));
-  m_BlackPieces.insert(std::make_shared<Rook>(0, 0, true));
-  m_BlackPieces.insert(std::make_shared<Rook>(7, 0, true));
-  m_BlackPieces.insert(std::make_shared<Knight>(1, 0, true));
-  m_BlackPieces.insert(std::make_shared<Knight>(6, 0, true));
-  m_BlackPieces.insert(std::make_shared<Bishop>(2, 0, true));
-  m_BlackPieces.insert(std::make_shared<Bishop>(5, 0, true));
-  m_BlackPieces.insert(std::make_shared<Queen>(3, 0, true));
-  m_BlackPieces.insert(std::make_shared<King>(4, 0, true));
+  m_WhitePieces.insert(std::make_shared<Rook>(&board[posToIndex({0, 7})], false));
+  m_WhitePieces.insert(std::make_shared<Rook>(&board[posToIndex({7, 7})], false));
+  m_WhitePieces.insert(std::make_shared<Knight>(&board[posToIndex({1, 7})], false));
+  m_WhitePieces.insert(std::make_shared<Knight>(&board[posToIndex({6, 7})], false));
+  m_WhitePieces.insert(std::make_shared<Bishop>(&board[posToIndex({2, 7})], false));
+  m_WhitePieces.insert(std::make_shared<Bishop>(&board[posToIndex({5, 7})], false));
+  m_WhitePieces.insert(std::make_shared<Queen>(&board[posToIndex({3, 7})], false));
+  m_WhitePieces.insert(std::make_shared<King>(&board[posToIndex({4, 7})], false));
+  m_BlackPieces.insert(std::make_shared<Rook>(&board[posToIndex({0, 0})], true));
+  m_BlackPieces.insert(std::make_shared<Rook>(&board[posToIndex({7, 0})], true));
+  m_BlackPieces.insert(std::make_shared<Knight>(&board[posToIndex({1, 0})], true));
+  m_BlackPieces.insert(std::make_shared<Knight>(&board[posToIndex({6, 0})], true));
+  m_BlackPieces.insert(std::make_shared<Bishop>(&board[posToIndex({2, 0})], true));
+  m_BlackPieces.insert(std::make_shared<Bishop>(&board[posToIndex({5, 0})], true));
+  m_BlackPieces.insert(std::make_shared<Queen>(&board[posToIndex({3, 0})], true));
+  m_BlackPieces.insert(std::make_shared<King>(&board[posToIndex({4, 0})], true));
 
   for (const auto &piece : m_WhitePieces) {
     int index = posToIndex({piece->getPosition().x, piece->getPosition().y});
@@ -72,14 +72,14 @@ void ChessGame::run() {
   gameLoop(); 
 }
 
-Square* ChessGame::getSquareAtPosition(int x, int y) {
-  return &m_Board[posToIndex({x, y})];
+Square *ChessGame::getSquareAtPosition(std::array<Square, 64> &board, int x, int y) {
+  return &board[posToIndex({x, y})];
 }
 
 void ChessGame::handleMouseClick(SDL_Event* event) {
   // Only handle click events for current player's turn
   int mouseX = static_cast<int>(event->button.x), mouseY = static_cast<int>(event->button.y);
-  std::cout << "Mouse Clicked at: (" << mouseX << ", " << mouseY << ")\n";
+  LOG_PRINTF("Mouse clicked at: (%d, %d)\n", mouseX, mouseY);
   int posX = mouseX / SQUARE_SIZE;
   int posY = mouseY / SQUARE_SIZE;
 
@@ -91,18 +91,18 @@ void ChessGame::handleMouseClick(SDL_Event* event) {
 }
 
 void ChessGame::selectSource(int x, int y) {
-  Square* clickedSquare = getSquareAtPosition(x, y);
+  Square* clickedSquare = getSquareAtPosition(m_Board, x, y);
   if (!clickedSquare) {
     std::cerr << "Clicked outside of board boundaries.\n";
     throw std::runtime_error("Clicked outside of board boundaries");
   }
   if (clickedSquare->occupyingPiece == nullptr) {
-    std::cout << "You must select one of your own pieces\n";
+    LOG_COUT("You must select one of your own pieces");
     return;
   }
   if (clickedSquare->occupyingPiece->isBlack() && !m_PlayerIsBlack ||
       !clickedSquare->occupyingPiece->isBlack() && m_PlayerIsBlack) {
-    std::cout << "You clicked on an opponent's piece.\n";
+    LOG_COUT("You clicked on an opponent's piece");
     return;
   }
   m_SelectedSquare = clickedSquare;
@@ -111,7 +111,7 @@ void ChessGame::selectSource(int x, int y) {
   // TODO: Highlight possible moves, implement taking pieces
   std::vector<Position> possibleMoves = clickedSquare->occupyingPiece->getPossibleMoves(m_Board);
   for (const Position &pos : possibleMoves) {
-    Square* targetSquare = getSquareAtPosition(pos.x, pos.y);
+    Square* targetSquare = getSquareAtPosition(m_Board, pos.x, pos.y);
     if (!targetSquare) {
       std::cerr << "No target square found\n";
       throw std::runtime_error("No target square found\n");
@@ -121,18 +121,16 @@ void ChessGame::selectSource(int x, int y) {
 }
 
 void ChessGame::selectDestination(int x, int y) {
-  Square* clickedSquare = getSquareAtPosition(x, y);
+  Square* clickedSquare = getSquareAtPosition(m_Board, x, y);
   if (!clickedSquare) {
     std::cerr << "Clicked outside of board boundaries.\n";
     throw std::runtime_error("Clicked outside of board boundaries");
     return;
   }
 
-  // TODO: Move piece logic
-
   // Deselect piece after move attempt
   if (clickedSquare->isHighlighted && clickedSquare != m_SelectedSquare) {
-    std::cout << "Moving piece to new square.\n";
+    LOG_COUT("Moving piece to new square.");
     processMove(m_SelectedSquare->x, m_SelectedSquare->y, clickedSquare->x, clickedSquare->y);
   }
   unselectAllSquares();
@@ -141,20 +139,30 @@ void ChessGame::selectDestination(int x, int y) {
 }
 
 void ChessGame::processMove(int srcX, int srcY, int dstX, int dstY) {
-  Square* srcSquare = getSquareAtPosition(srcX, srcY);
-  Square* dstSquare = getSquareAtPosition(dstX, dstY);
+  // Generate next board's game state
+  // TODO: Validate the next board
+  std::array<Square, 64> nextBoard = m_Board;
+  Square* srcSquare = getSquareAtPosition(nextBoard, srcX, srcY);
+  Square* dstSquare = getSquareAtPosition(nextBoard, dstX, dstY);
 
   std::shared_ptr<Piece> srcPiece = srcSquare->occupyingPiece;
   std::shared_ptr<Piece> dstPiece = dstSquare->occupyingPiece;
 
-  printf("Moving from (%d, %d) to (%d, %d)", srcX, srcY, dstX, dstY);
+  bool isValidMove = true; // TODO: Replace this with functionality that validates nextBoard
 
-  if (srcPiece) {
-    srcPiece->setPosition(dstX, dstY);
-    dstSquare->occupyingPiece = std::move(srcSquare->occupyingPiece);
-  }
-  if (dstPiece) {
-    dstPiece->setIsAlive(false);
+  LOG_PRINTF("Moving from (%d, %d) (%p) to (%d, %d) (%p)\n", srcX, srcY, srcSquare, dstX, dstY, dstSquare);
+  // Perform the move if it is valid
+  if (isValidMove)
+  {
+    srcSquare = getSquareAtPosition(m_Board, srcX, srcY);
+    dstSquare = getSquareAtPosition(m_Board, dstX, dstY);
+    if (srcPiece) {
+      srcPiece->setSquare(getSquareAtPosition(m_Board, dstX, dstY));
+      dstSquare->occupyingPiece = std::move(srcSquare->occupyingPiece);
+    }
+    if (dstPiece) {
+      dstPiece->setIsAlive(false);
+    }
   }
 
   // Switch turn

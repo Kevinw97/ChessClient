@@ -19,7 +19,7 @@ bool RenderHandler::init() {
   return 0;
 };
 
-void RenderHandler::generateSquares(std::array<Square, 64>& board) {
+void RenderHandler::generateInitialBoard(std::array<Square, 64> &board) {
   float squareWidth = static_cast<float>(m_Width / 8);
   float squareHeight = static_cast<float>(m_Height / 8);
   for (int y = 0; y < 8; y++) {
@@ -68,6 +68,7 @@ void RenderHandler::drawChessBoard(std::array<Square, 64>& board) {
         throw std::runtime_error("Failed to load piece surface");
       }
       SDL_RenderTexture(m_Renderer, texture, nullptr, &square.innerRect);
+      SDL_DestroyTexture(texture);
     }
     if (square.isHighlighted) {
       SDL_SetRenderDrawColor(m_Renderer, 0, 200, 255,

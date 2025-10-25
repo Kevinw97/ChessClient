@@ -5,7 +5,7 @@
 namespace chess_client {
 class Bishop : public Piece {
 public:
-  Bishop(int x, int y, bool isBlack);
+  Bishop(Square *square, bool isBlack);
   std::vector<Position> getPossibleMoves(std::array<Square, 64>& board) override;
 };
 } // namespace chess_client

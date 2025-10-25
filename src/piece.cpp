@@ -1,8 +1,8 @@
 #include "piece.h"
 
 namespace chess_client {
-Piece::Piece(int x, int y, bool isBlack)
-    : m_Position{x, y}, m_isBlack(isBlack), m_isAlive(true),
+Piece::Piece(Square *square, bool isBlack)
+    : m_Square(square), m_isBlack(isBlack), m_isAlive(true),
       m_Surface(nullptr) {};
 
 void Piece::loadSurface(const char* filepath) {

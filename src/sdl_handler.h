@@ -22,9 +22,8 @@ public:
     RenderHandler(const char* title, int width, int height);
     bool init();
     void drawChessBoard(std::array<Square, 64>& board);
-    void generateSquares(std::array<Square, 64>& board);
+    void generateInitialBoard(std::array<Square, 64> &board);
     float getPadding(Square square) const { return 0.10f * square.rect.w; }
-    Square* getSquareAtPosition(int x, int y);
     void unselectAllSquares();
 };
 } // namespace chess_client

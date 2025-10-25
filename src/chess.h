@@ -5,6 +5,16 @@
 #include <array>
 #include <memory>
 
+#define CHESS_LOGGING 1
+
+#if CHESS_LOGGING
+#define LOG_COUT(X) std::cout << X << std::endl
+#define LOG_PRINTF(...) printf(__VA_ARGS__)
+#else
+#define LOG_COUT(X)
+#define LOG_PRINTF(...)
+#endif
+
 namespace chess_client {
 class Piece;
 struct Position {
@@ -47,19 +57,18 @@ enum PieceType : unsigned char {
 };
 
 static bool isValidPosition(Position pos) {
-
   return (pos.x >= 0 && pos.x < 8 && pos.y >= 0 && pos.y < 8);
 }
 
 static int posToIndex(Position pos) {
   if (!isValidPosition(pos)) {
-    std::cout << "Invalid position passed to posToIndex" << std::endl;
+    LOG_COUT("Invalid position passed to posToIndex");
     return -1;
   }
   return pos.y * 8 + pos.x;
 }
 
-static bool isPositionOccupied(std::array<Square, 64> &board, Position &pos) {
+static bool positionIsOccupied(std::array<Square, 64> &board, Position &pos) {
   return board[posToIndex(pos)].occupyingPiece != nullptr;
 }
 

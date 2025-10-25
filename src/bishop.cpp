@@ -1,7 +1,7 @@
 #include "bishop.h"
 namespace chess_client {
-Bishop::Bishop(int x, int y, bool isBlack)
-    : Piece(x, y, isBlack) {
+Bishop::Bishop(Square *square, bool isBlack)
+    : Piece(square, isBlack) {
     loadSurface(isBlack ? "res/b_bishop.png" : "res/w_bishop.png");
 };
 /*
@@ -15,7 +15,7 @@ Bishops can't hop over pieces so we must break out as soon as we collide with so
          2: + +
          3: - +
 */
-std::vector<Position> Bishop::getPossibleMoves(std::array<Square, 64>& board) {
+std::vector<Position> Bishop::getPossibleMoves(std::array<Square, 64> &board) {
     std::vector<Position> moves;
     int x = getPosition().x;
     int y = getPosition().y;
@@ -25,7 +25,7 @@ std::vector<Position> Bishop::getPossibleMoves(std::array<Square, 64>& board) {
         if (!isValidPosition(nextPos)) {
           return;
         }
-        if (isPositionOccupied(board, nextPos)) {
+        if (positionIsOccupied(board, nextPos)) {
           if (isOpposingPiece(*board[posToIndex(nextPos)].occupyingPiece)) {
             moves.push_back(nextPos);
           }
