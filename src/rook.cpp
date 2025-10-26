@@ -16,8 +16,11 @@ Rooks can't hop over pieces so we must break out as soon as we collide something
       3: -1 0
 TODO: Castling
 */
-std::vector<Position> Rook::getPossibleMoves(std::array<Square, 64>& board) {
-  std::vector<Position> moves;
+std::vector<Move> Rook::getPossibleMoves(const std::array<Square, 64>& board) {
+  std::vector<Move> moves;
+  if (!isAlive()) {
+    return moves;
+  }
   int x = getPosition().x;
   int y = getPosition().y;
   auto addMovesForDirection = [&](Position direction) {
@@ -27,12 +30,12 @@ std::vector<Position> Rook::getPossibleMoves(std::array<Square, 64>& board) {
         return;
       }
       if (positionIsOccupied(board, nextPos)) {
-        if (isOpposingPiece(*board[posToIndex(nextPos)].occupyingPiece)) {
-          moves.push_back(nextPos);
+        if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
+          moves.push_back({nextPos, board[posToIndex(nextPos)].occupyingPiece});
         }
         return;
       }
-      moves.push_back(nextPos);
+      moves.push_back({nextPos, nullptr});
     }
   };
   addMovesForDirection({0, -1});

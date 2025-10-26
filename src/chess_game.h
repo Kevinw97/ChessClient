@@ -6,27 +6,31 @@
 #include "piece.h"
 #include "queen.h"
 #include "rook.h"
-#include "sdl_handler.h"
-#include <set>
+#include "render_handler.h"
 #include "chess.h"
+#include <set>
 
 namespace chess_client {
 class ChessGame {
 
 private:
     RenderHandler m_RenderHandler;
+    std::array<Square, 64> m_Board;
     std::set<std::shared_ptr<Piece>> m_WhitePieces;
     std::set<std::shared_ptr<Piece>> m_BlackPieces;
-    bool m_PlayerIsBlack = false;
-    bool m_IsBlackTurn = false;
+    std::shared_ptr<Piece> m_BlackKing = nullptr;
+    std::shared_ptr<Piece> m_WhiteKing = nullptr;
+    PlayerColor m_CurrentPlayerColor = WHITE;
+    PlayerColor m_CurrentTurnColor = WHITE;
     Square* m_SelectedSquare = nullptr;
-    std::array<Square, 64> m_Board;
 
     void setupInitialPieces(std::array<Square, 64> &board);
     void gameLoop();
     void handleMouseClick(SDL_Event* event);
     Square *getSquareAtPosition(std::array<Square, 64> &board, int x, int y);
     bool isCurrentPlayersTurn();
+    bool isValidMove(const Move &move);
+    bool isKingInCheck(std::array<Square, 64> &board, PlayerColor Color);
     void processMove(int srcX, int srcY, int dstX, int dstY);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);

@@ -10,8 +10,11 @@ King::King(Square *square, bool isBlack) : Piece(square, isBlack) {
     7 K 3
     6 5 4
 */
-std::vector<Position> King::getPossibleMoves(std::array<Square, 64>& board) {
-  std::vector<Position> moves;
+std::vector<Move> King::getPossibleMoves(const std::array<Square, 64>& board) {
+  std::vector<Move> moves;
+  if (!isAlive()) {
+    return moves;
+  }
   int x = getPosition().x;
   int y = getPosition().y;
   Position possibleMoves[] = {{-1, -1}, // 0
@@ -28,11 +31,12 @@ std::vector<Position> King::getPossibleMoves(std::array<Square, 64>& board) {
       continue;
     }
     if (positionIsOccupied(board, nextPos)) {
-      if (!isOpposingPiece(*board[posToIndex(nextPos)].occupyingPiece)) {
-        continue;
+      if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
+        moves.push_back({nextPos, board[posToIndex(nextPos)].occupyingPiece});
       }
+      continue;
     }
-    moves.push_back(nextPos);
+    moves.push_back({nextPos, nullptr});
   }
   return moves;
 };

@@ -18,7 +18,7 @@
     <ClCompile Include="src\chess_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\sdl_handler.cpp">
+    <ClCompile Include="src\render_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\chess_game.cpp">
@@ -109,7 +109,7 @@
     <ClInclude Include="src\rook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\sdl_handler.h">
+    <ClInclude Include="src\render_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\chess.h">

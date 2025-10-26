@@ -13,7 +13,7 @@ void Piece::loadSurface(const char* filepath) {
   }
 }
 
-bool Piece::isOpposingPiece(Piece& piece) {
-  return piece.isBlack() != m_isBlack;
+bool Piece::isOpposingPiece(const std::shared_ptr<Piece> &piece) {
+  return piece->isBlack() != m_isBlack;
 }
 } // namespace chess_client

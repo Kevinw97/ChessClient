@@ -6,8 +6,11 @@ Queen::Queen(Square *square, bool isBlack) : Piece(square, isBlack) {
 };
 
 // Queen literally moves like how a bishop + rook move
-std::vector<Position> Queen::getPossibleMoves(std::array<Square, 64>& board) {
-  std::vector<Position> moves;
+std::vector<Move> Queen::getPossibleMoves(const std::array<Square, 64>& board) {
+  std::vector<Move> moves;
+  if (!isAlive()) {
+    return moves;
+  }
   int x = getPosition().x;
   int y = getPosition().y;
   auto addMovesForDirection = [&](Position direction) {
@@ -17,12 +20,12 @@ std::vector<Position> Queen::getPossibleMoves(std::array<Square, 64>& board) {
         return;
       }
       if (positionIsOccupied(board, nextPos)) {
-        if (isOpposingPiece(*board[posToIndex(nextPos)].occupyingPiece)) {
-          moves.push_back(nextPos);
+        if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
+          moves.push_back({nextPos, board[posToIndex(nextPos)].occupyingPiece});
         }
         return;
       }
-      moves.push_back(nextPos);
+      moves.push_back({nextPos, nullptr});
     }
   };
   addMovesForDirection({0, -1});

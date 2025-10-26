@@ -16,17 +16,29 @@
 #endif
 
 namespace chess_client {
+
+const int BOARD_SIZE = 960;
+const int SQUARE_SIZE = BOARD_SIZE / 8;
+
 class Piece;
+
 struct Position {
   int x;
   int y;
 };
+
+struct Move {
+  Position dst;
+  std::shared_ptr<Piece> capturedPiece;
+};
+
 struct RGBAColor {
   Uint8 r;
   Uint8 g;
   Uint8 b;
   Uint8 a;
 };
+
 struct Square {
   union {
     Position pos;
@@ -37,10 +49,16 @@ struct Square {
   };
   SDL_FRect rect;
   SDL_FRect innerRect;
-  RGBAColor color;
+  RGBAColor Color;
   bool isHighlighted;
   std::shared_ptr<Piece> occupyingPiece;
 };
+
+enum PlayerColor : bool {
+  WHITE,
+  BLACK
+};
+
 enum PieceType : unsigned char {
   WHITE_PAWN,
   WHITE_ROOK,
@@ -62,13 +80,13 @@ static bool isValidPosition(Position pos) {
 
 static int posToIndex(Position pos) {
   if (!isValidPosition(pos)) {
-    LOG_COUT("Invalid position passed to posToIndex");
+    LOG_COUT("Invalid square position passed to posToIndex");
     return -1;
   }
   return pos.y * 8 + pos.x;
 }
 
-static bool positionIsOccupied(std::array<Square, 64> &board, Position &pos) {
+static bool positionIsOccupied(const std::array<Square, 64> &board, Position &pos) {
   return board[posToIndex(pos)].occupyingPiece != nullptr;
 }
 

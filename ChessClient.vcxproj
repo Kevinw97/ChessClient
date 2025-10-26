@@ -28,7 +28,7 @@
     <ClCompile Include="src\piece.cpp" />
     <ClCompile Include="src\queen.cpp" />
     <ClCompile Include="src\rook.cpp" />
-    <ClCompile Include="src\sdl_handler.cpp" />
+    <ClCompile Include="src\render_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\b_bishop.png" />
@@ -54,7 +54,7 @@
     <ClInclude Include="src\piece.h" />
     <ClInclude Include="src\queen.h" />
     <ClInclude Include="src\rook.h" />
-    <ClInclude Include="src\sdl_handler.h" />
+    <ClInclude Include="src\render_handler.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -82,6 +82,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -89,6 +90,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

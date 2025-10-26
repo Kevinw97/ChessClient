@@ -12,8 +12,11 @@ Knight::Knight(Square *square, bool isBlack) : Piece(square, isBlack) {
     6 _ _ _ 3
     _ 5 _ 4 _
 */
-std::vector<Position> Knight::getPossibleMoves(std::array<Square, 64> &board) {
-  std::vector<Position> moves;
+std::vector<Move> Knight::getPossibleMoves(const std::array<Square, 64> &board) {
+  std::vector<Move> moves;
+  if (!isAlive()) {
+    return moves;
+  }
   int x = getPosition().x;
   int y = getPosition().y;
   Position possibleMoves[] = {{-1, -2},  // 0
@@ -30,11 +33,12 @@ std::vector<Position> Knight::getPossibleMoves(std::array<Square, 64> &board) {
       continue;
     }
     if (positionIsOccupied(board, nextPos)) {
-      if (!isOpposingPiece(*board[posToIndex(nextPos)].occupyingPiece)) {
-        continue;
+      if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
+        moves.push_back({nextPos, board[posToIndex(nextPos)].occupyingPiece});
       }
+      continue;
     }
-    moves.push_back(nextPos);
+    moves.push_back({nextPos, nullptr});
   }
   return moves;
 };
