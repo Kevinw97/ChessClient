@@ -6,6 +6,8 @@
 #include <memory>
 #include <Windows.h>
 #include <cstdlib>
+#include <algorithm>
+#include <string>
 
 #define CHESS_LOGGING 1
 
@@ -24,16 +26,34 @@ namespace chess_client {
 
   class Piece;
 
+  enum PieceColor : bool {
+    WHITE,
+    BLACK
+  };
+
+  enum PieceType : unsigned char {
+    NONE,
+    PAWN,
+    ROOK,
+    KNIGHT,
+    BISHOP,
+    QUEEN,
+    KING
+  };
+
   struct Position {
     int x;
     int y;
   };
 
   struct Move {
+    Position src;
     Position dst;
     std::shared_ptr<Piece> capturedPiece;
+    Position castlingRootSrc;
     Position castlingRookDst;
     std::shared_ptr<Piece> castlingRook;
+    PieceType promoteType;
   };
 
   struct Action {
@@ -61,26 +81,6 @@ namespace chess_client {
     RGBAColor Color;
     bool isHighlighted;
     std::shared_ptr<Piece> occupyingPiece;
-  };
-
-  enum PieceColor : bool {
-    WHITE,
-    BLACK
-  };
-
-  enum PieceType : unsigned char {
-    WHITE_PAWN,
-    WHITE_ROOK,
-    WHITE_KNIGHT,
-    WHITE_BISHOP,
-    WHITE_QUEEN,
-    WHITE_KING,
-    BLACK_PAWN,
-    BLACK_ROOK,
-    BLACK_KNIGHT,
-    BLACK_BISHOP,
-    BLACK_QUEEN,
-    BLACK_KING
   };
 
   inline bool isValidPosition(Position pos) {

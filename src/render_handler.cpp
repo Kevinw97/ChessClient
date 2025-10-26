@@ -114,6 +114,11 @@ namespace chess_client {
       SDL_DestroyTexture(texture);
     }
   }
+
+  void RenderHandler::clearCapturedPieces() {
+    m_WhitePiecesCaptured.clear();
+    m_BlackPiecesCaptured.clear();
+  }
   /*
   typedef struct SDL_FRect
   {

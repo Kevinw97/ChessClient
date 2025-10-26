@@ -18,7 +18,6 @@ namespace chess_client {
          2: 0  1
          3: -1 0
 
-  TODO: Castling
   */
   std::vector<Move> Rook::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
     std::vector<Move> moves;
@@ -35,11 +34,11 @@ namespace chess_client {
         }
         if (positionIsOccupied(board, nextPos)) {
           if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
-            moves.push_back({ nextPos, board[posToIndex(nextPos)].occupyingPiece });
+            moves.push_back({ getPosition(), nextPos, board[posToIndex(nextPos)].occupyingPiece });
           }
           return;
         }
-        moves.push_back({ nextPos });
+        moves.push_back({ getPosition(), nextPos });
       }
       };
     addMovesForDirection({ 0, -1 });
@@ -48,5 +47,15 @@ namespace chess_client {
     addMovesForDirection({ -1, 0 });
 
     return moves;
+  };
+
+  void Rook::performMove(std::array<Square, 64>& board, Move& move) {
+    if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
+      setSquare(getSquareAtPosition(board, move.castlingRookDst.x, move.castlingRookDst.y));
+      setMoved(true);
+    }
+    else {
+      Piece::performMove(board, move);
+    }
   };
 } // namespace chess_client

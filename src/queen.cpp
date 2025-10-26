@@ -21,11 +21,11 @@ namespace chess_client {
         }
         if (positionIsOccupied(board, nextPos)) {
           if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
-            moves.push_back({ nextPos, board[posToIndex(nextPos)].occupyingPiece });
+            moves.push_back({ getPosition(), nextPos, board[posToIndex(nextPos)].occupyingPiece });
           }
           return;
         }
-        moves.push_back({ nextPos });
+        moves.push_back({ getPosition(), nextPos });
       }
       };
     addMovesForDirection({ 0, -1 });

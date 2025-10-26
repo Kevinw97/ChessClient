@@ -1,4 +1,9 @@
 #include "pawn.h"
+#include "rook.h"
+#include "bishop.h"
+#include "king.h"
+#include "queen.h"
+#include "knight.h"
 #include "chess.h"
 
 namespace chess_client {
@@ -6,7 +11,25 @@ namespace chess_client {
     loadSurface(color == BLACK ? "res/b_pawn.png" : "res/w_pawn.png");
   };
 
+  void Pawn::setIsAlive(bool isAlive) {
+    if (m_PromotedPiece) {
+      m_PromotedPiece->setIsAlive(isAlive);
+    }
+    Piece::setIsAlive(isAlive);
+  };
+
+  void Pawn::setSquare(Square* square) {
+    if (m_PromotedPiece) {
+      m_PromotedPiece->setSquare(square);
+    }
+    Piece::setSquare(square);
+  };
+
   std::vector<Move> Pawn::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
+    if (m_PromotedPiece) {
+      return m_PromotedPiece->getPossibleMoves(board, actionHistory);
+    }
+
     std::vector<Move> moves;
     if (!isAlive()) {
       return moves;
@@ -18,14 +41,14 @@ namespace chess_client {
 
     Position frontPos = { x, y + direction };
     if (isValidPosition(frontPos) && !positionIsOccupied(board, frontPos)) {
-      moves.push_back({ frontPos });
+      moves.push_back({ getPosition(), frontPos });
     }
 
     if (getPosition().y == startRow) {
       // Initial double move
       Position nextPos = { x, y + 2 * direction };
       if (isValidPosition(nextPos) && !positionIsOccupied(board, frontPos) && !positionIsOccupied(board, nextPos)) {
-        moves.push_back({ nextPos });
+        moves.push_back({ getPosition(), nextPos });
       }
     }
 
@@ -34,14 +57,14 @@ namespace chess_client {
       // Regular takeover
       if (positionIsOccupied(board, leftDiagonal) &&
         isOpposingPiece(board[posToIndex(leftDiagonal)].occupyingPiece)) {
-        moves.push_back({ leftDiagonal, board[posToIndex(leftDiagonal)].occupyingPiece });
+        moves.push_back({ getPosition(), leftDiagonal, board[posToIndex(leftDiagonal)].occupyingPiece });
       }
       // En passante
       if (m_RowsAdvanced == 3 && positionIsOccupied(board, { x - 1, y })) {
         const std::shared_ptr<Piece>& occupyingPiece = board[posToIndex({ x - 1, y })].occupyingPiece;
         if (isOpposingPiece(occupyingPiece) &&
           actionHistory.back().piece == occupyingPiece) {
-          moves.push_back({ leftDiagonal, occupyingPiece });
+          moves.push_back({ getPosition(), leftDiagonal, occupyingPiece });
         }
       }
     }
@@ -51,15 +74,14 @@ namespace chess_client {
       // Regular takeover
       if (positionIsOccupied(board, rightDiagonal) &&
         isOpposingPiece(board[posToIndex(rightDiagonal)].occupyingPiece)) {
-        moves.push_back(
-          { rightDiagonal, board[posToIndex(rightDiagonal)].occupyingPiece });
+        moves.push_back({ getPosition(), rightDiagonal, board[posToIndex(rightDiagonal)].occupyingPiece });
       }
       // En passante
       if (m_RowsAdvanced == 3 && positionIsOccupied(board, { x + 1, y })) {
         const std::shared_ptr<Piece>& occupyingPiece = board[posToIndex({ x + 1, y })].occupyingPiece;
         if (isOpposingPiece(occupyingPiece) &&
           actionHistory.back().piece == occupyingPiece) {
-          moves.push_back({ rightDiagonal, occupyingPiece });
+          moves.push_back({ getPosition(), rightDiagonal, occupyingPiece });
         }
       }
     }
@@ -67,8 +89,84 @@ namespace chess_client {
     return moves;
   };
 
-  void Pawn::performMove(std::array<Square, 64>& board, const Position& pos) {
+  void Pawn::performMove(std::array<Square, 64>& board, Move& move) {
+    Position& pos = move.dst;
+    if (m_PromotedPiece) {
+      m_PromotedPiece->performMove(board, move);
+    }
     m_RowsAdvanced += std::abs(pos.y - getPosition().y);
-    Piece::performMove(board, pos);
+    Piece::performMove(board, move);
+    if (!m_PromotedPiece && m_RowsAdvanced == 6) {
+      std::cout << "Pawn promotion! Choose a piece (rook, bishop, knight, queen): ";
+      std::string pieceInput;
+      PieceType selectedType = QUEEN; // Default to queen
+      while (std::getline(std::cin, pieceInput)) {
+        std::transform(pieceInput.begin(), pieceInput.end(), pieceInput.begin(), ::tolower);
+        if (pieceInput == "rook") {
+          selectedType = ROOK;
+          break;
+        }
+        else if (pieceInput == "bishop") {
+          selectedType = BISHOP;
+          break;
+        }
+        else if (pieceInput == "knight") {
+          selectedType = KNIGHT;
+          break;
+        }
+        else if (pieceInput == "queen") {
+          selectedType = QUEEN;
+          break;
+        }
+        else {
+          std::cout << "Invalid input. Please enter rook, bishop, knight, or queen: ";
+        }
+      }
+      move.promoteType = selectedType;
+      promotePiece(selectedType);
+    }
+  };
+
+  void Pawn::promotePiece(PieceType type) {
+    if (m_RowsAdvanced != 6 || m_PromotedPiece) {
+      return;
+    }
+    if (type == PAWN || type == KING) {
+      std::cerr << "Should not have called promote with this type\n";
+      throw std::runtime_error("Wrong promotion type\n");
+    }
+    switch (type) {
+    case ROOK: {
+      m_PromotedPiece = std::make_unique<Rook>(getSquare(), getColor());
+      break;
+    }
+    case BISHOP: {
+      m_PromotedPiece = std::make_unique<Bishop>(getSquare(), getColor());
+      break;
+    }
+    case KNIGHT: {
+      m_PromotedPiece = std::make_unique<Knight>(getSquare(), getColor());
+      break;
+    }
+    case QUEEN: {
+      m_PromotedPiece = std::make_unique<Queen>(getSquare(), getColor());
+      break;
+    }
+    }
+    return;
   }
+
+  SDL_Surface* Pawn::getSurface() {
+    if (m_PromotedPiece) {
+      return m_PromotedPiece->getSurface();
+    }
+    else {
+      return Piece::getSurface();
+    }
+  };
+
+  void Pawn::resetPiece(std::array<Square, 64>& board) {
+    m_PromotedPiece.reset();
+    Piece::resetPiece(board);
+  };
 } // namespace chess_client

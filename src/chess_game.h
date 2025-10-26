@@ -14,6 +14,8 @@ namespace chess_client {
   class ChessGame {
 
   private:
+    bool m_InProgress = true;
+    bool m_Running = true;
     RenderHandler m_RenderHandler;
     std::array<Square, 64> m_Board;
     std::set<std::shared_ptr<Piece>> m_WhitePieces;
@@ -32,10 +34,12 @@ namespace chess_client {
     bool isCurrentPlayersTurn();
     bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
     bool isKingInCheck(std::array<Square, 64>& board, PieceColor Color);
-    void processMove(const std::shared_ptr<Piece>& piece, const Move& move);
+    void processMove(const std::shared_ptr<Piece>& piece, Move& move, bool undo = false);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);
     void unselectAllSquares();
+    void undoMove();
+    void resetGame();
 
   public:
     ChessGame();

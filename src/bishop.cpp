@@ -10,8 +10,11 @@ namespace chess_client {
             X X X
             3 X 2
 
-  Bishops can't hop over pieces so we must break out as soon as we collide with
-  something 0: - - 1: + - 2: + + 3: - +
+  Bishops can't hop over pieces so we must break out as soon as we collide with something
+            0: - - 
+            1: + - 
+            2: + + 
+            3: - +
   */
   std::vector<Move>
     Bishop::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
@@ -30,11 +33,11 @@ namespace chess_client {
         }
         if (positionIsOccupied(board, nextPos)) {
           if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
-            moves.push_back({ nextPos, board[posToIndex(nextPos)].occupyingPiece });
+            moves.push_back({ getPosition(), nextPos, board[posToIndex(nextPos)].occupyingPiece });
           }
           return;
         }
-        moves.push_back({ nextPos });
+        moves.push_back({ getPosition(), nextPos });
       }
       };
     addMovesForDirection({ -1, -1 });

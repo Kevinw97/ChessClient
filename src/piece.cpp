@@ -2,8 +2,10 @@
 
 namespace chess_client {
   Piece::Piece(Square* square, PieceColor color)
-    : m_Square(square), m_Color(color), m_Surface(nullptr) {
-  };
+    : m_Square(square)
+    , m_InitialPosition(square->pos)
+    , m_Color(color)
+    , m_Surface(nullptr) {};
 
   void Piece::loadSurface(const char* filepath) {
     m_Surface = IMG_Load(filepath);
@@ -13,12 +15,19 @@ namespace chess_client {
     }
   }
 
-  void Piece::performMove(std::array<Square, 64>& board, const Position& pos) {
-    m_HasMoved = true;
-    setSquare(getSquareAtPosition(board, pos.x, pos.y));
+  void Piece::performMove(std::array<Square, 64>& board, Move& move) {
+    setSquare(getSquareAtPosition(board, move.dst.x, move.dst.y));
+    setMoved(true);
   }
 
   bool Piece::isOpposingPiece(const std::shared_ptr<Piece>& piece) {
     return piece->getColor() != getColor();
+  }
+
+  void Piece::resetPiece(std::array<Square, 64>& board) {
+    Square* square = getSquareAtPosition(board, m_InitialPosition.x, m_InitialPosition.y);
+    setSquare(square);
+    setIsAlive(true);
+    setMoved(false);
   }
 } // namespace chess_client
