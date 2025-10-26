@@ -6,25 +6,26 @@
 #include <vector>
 
 namespace chess_client {
-class Piece {
-private:
+  class Piece {
+  private:
     Square* m_Square;
     SDL_Surface* m_Surface;
     bool m_isBlack;
     bool m_isAlive;
 
-public:
+  public:
     Piece(Square* square, bool isBlack);
     void loadSurface(const char* filepath);
     void setIsAlive(bool isAlive) { m_isAlive = isAlive; }
     bool isAlive() const { return m_isAlive; }
     bool isBlack() const { return m_isBlack; }
-    bool isOpposingPiece(const std::shared_ptr<Piece> &piece);
-    Position getPosition() { 
-      return m_Square ? m_Square->pos : Position{-1, -1}; 
+    bool isOpposingPiece(const std::shared_ptr<Piece>& piece);
+    Position getPosition() {
+      return m_Square ? m_Square->pos : Position{ -1, -1 };
     }
-    void setSquare(Square *square) { m_Square = square; }
+    void setSquare(Square* square) { m_Square = square; }
     SDL_Surface* getSurface() { return m_Surface; }
-    virtual std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board) = 0;
-};
+    virtual void performMove(std::array<Square, 64>& board, const Move& move);
+    virtual std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) = 0;
+  };
 } // namespace chess_client

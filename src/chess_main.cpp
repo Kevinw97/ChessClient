@@ -8,6 +8,6 @@
 #define SDL_MAIN_HANDLED
 
 int main() {
-    chess_client::ChessGame game;
-    game.run();
+  chess_client::ChessGame game;
+  game.run();
 }

@@ -86,65 +86,65 @@ namespace chess_client {
     SDL_RenderPresent(m_Renderer);
   }
 
-  void RenderHandler::capturePiece(const std::shared_ptr<Piece> &piece) {
+  void RenderHandler::capturePiece(const std::shared_ptr<Piece>& piece) {
     PlayerColor color = piece->isBlack() ? BLACK : WHITE;
     if (color == BLACK) {
-      m_BlackPiecesCaptured.push_back({getNextCaptureContainer(color), piece});
+      m_BlackPiecesCaptured.push_back({ getNextCaptureContainer(color), piece });
     }
     if (color == WHITE) {
-      m_WhitePiecesCaptured.push_back({getNextCaptureContainer(color), piece});
+      m_WhitePiecesCaptured.push_back({ getNextCaptureContainer(color), piece });
     }
   }
 
-void RenderHandler::drawCapturedPieces() {
-    for (const CapturedPiece &capturedPiece : m_BlackPiecesCaptured) {
+  void RenderHandler::drawCapturedPieces() {
+    for (const CapturedPiece& capturedPiece : m_BlackPiecesCaptured) {
       SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
       SDL_RenderFillRect(m_Renderer, &capturedPiece.container);
-      SDL_Surface *pieceSurface = capturedPiece.piece->getSurface();
-      SDL_Texture *texture = SDL_CreateTextureFromSurface(m_Renderer, pieceSurface);
+      SDL_Surface* pieceSurface = capturedPiece.piece->getSurface();
+      SDL_Texture* texture = SDL_CreateTextureFromSurface(m_Renderer, pieceSurface);
       SDL_RenderTexture(m_Renderer, texture, nullptr, &capturedPiece.container);
       SDL_DestroyTexture(texture);
     }
-    for (const CapturedPiece &capturedPiece : m_WhitePiecesCaptured) {
+    for (const CapturedPiece& capturedPiece : m_WhitePiecesCaptured) {
       SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
       SDL_RenderFillRect(m_Renderer, &capturedPiece.container);
-      SDL_Surface *pieceSurface = capturedPiece.piece->getSurface();
-      SDL_Texture *texture = SDL_CreateTextureFromSurface(m_Renderer, pieceSurface);
+      SDL_Surface* pieceSurface = capturedPiece.piece->getSurface();
+      SDL_Texture* texture = SDL_CreateTextureFromSurface(m_Renderer, pieceSurface);
       SDL_RenderTexture(m_Renderer, texture, nullptr, &capturedPiece.container);
       SDL_DestroyTexture(texture);
     }
   }
-/*
-typedef struct SDL_FRect
-{
-    float x;
-    float y;
-    float w;
-    float h;
-} SDL_FRect;
-*/
-SDL_FRect RenderHandler::getNextCaptureContainer(PlayerColor color) {
-  const std::vector<CapturedPiece> &pieces = color == WHITE ? m_WhitePiecesCaptured: m_BlackPiecesCaptured;
-  float captureAreaWidth = SQUARE_SIZE;
-  float captureAreaHeight = BOARD_SIZE;
-  float captureAreaX = color == WHITE ? static_cast<float>(BOARD_SIZE + SQUARE_SIZE) : 0.0f;
-  float captureAreaY = 0;
-  size_t numPiecesCaptured = pieces.size();
-  return {
-    captureAreaX + (numPiecesCaptured % 2) * CAPTURED_CONTAINER_SIZE,
-    captureAreaY + (numPiecesCaptured / 2) * CAPTURED_CONTAINER_SIZE,
-    CAPTURED_CONTAINER_SIZE,
-    CAPTURED_CONTAINER_SIZE
-  };
-}
+  /*
+  typedef struct SDL_FRect
+  {
+      float x;
+      float y;
+      float w;
+      float h;
+  } SDL_FRect;
+  */
+  SDL_FRect RenderHandler::getNextCaptureContainer(PlayerColor color) {
+    const std::vector<CapturedPiece>& pieces = color == WHITE ? m_WhitePiecesCaptured : m_BlackPiecesCaptured;
+    float captureAreaWidth = SQUARE_SIZE;
+    float captureAreaHeight = BOARD_SIZE;
+    float captureAreaX = color == WHITE ? static_cast<float>(BOARD_SIZE + SQUARE_SIZE) : 0.0f;
+    float captureAreaY = 0;
+    size_t numPiecesCaptured = pieces.size();
+    return {
+      captureAreaX + (numPiecesCaptured % 2) * CAPTURED_CONTAINER_SIZE,
+      captureAreaY + (numPiecesCaptured / 2) * CAPTURED_CONTAINER_SIZE,
+      CAPTURED_CONTAINER_SIZE,
+      CAPTURED_CONTAINER_SIZE
+    };
+  }
 
-Position RenderHandler::mouseToPosition(SDL_Event* event) {
-  int mouseX = static_cast<int>(event->button.x);
-  int mouseY = static_cast<int>(event->button.y);
-  LOG_PRINTF("Mouse clicked at: (%d, %d)\n", mouseX, mouseY);
-  int posX = (mouseX - SQUARE_SIZE) / SQUARE_SIZE;
-  int posY = (mouseY) / SQUARE_SIZE;
-  LOG_PRINTF("Returning pos: (%d, %d)\n", posX, posY);
-  return {posX, posY};
-}
+  Position RenderHandler::mouseToPosition(SDL_Event* event) {
+    int mouseX = static_cast<int>(event->button.x);
+    int mouseY = static_cast<int>(event->button.y);
+    LOG_PRINTF("Mouse clicked at: (%d, %d)\n", mouseX, mouseY);
+    int posX = (mouseX - SQUARE_SIZE) / SQUARE_SIZE;
+    int posY = (mouseY) / SQUARE_SIZE;
+    LOG_PRINTF("Returning pos: (%d, %d)\n", posX, posY);
+    return { posX, posY };
+  }
 } // namespace chess_client

@@ -3,9 +3,13 @@
 #include "piece.h"
 
 namespace chess_client {
-class Pawn : public Piece {
-public:
-  Pawn(Square *square, bool isBlack);
-  std::vector<Move> getPossibleMoves(const std::array<Square, 64> &board) override;
-};
+  class Pawn : public Piece {
+  private:
+    int m_RowsAdvanced = 0;
+
+  public:
+    Pawn(Square* square, bool isBlack);
+    std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) override;
+    void performMove(std::array<Square, 64>& board, const Move& move);
+  };
 } // namespace chess_client

@@ -11,9 +11,9 @@
 #include <set>
 
 namespace chess_client {
-class ChessGame {
+  class ChessGame {
 
-private:
+  private:
     RenderHandler m_RenderHandler;
     std::array<Square, 64> m_Board;
     std::set<std::shared_ptr<Piece>> m_WhitePieces;
@@ -23,22 +23,23 @@ private:
     PlayerColor m_CurrentPlayerColor = WHITE;
     PlayerColor m_CurrentTurnColor = WHITE;
     Square* m_SelectedSquare = nullptr;
+    std::vector<Move> m_MovesForSelected;
+    std::vector<Action> m_ActionHistory;
 
-    void setupInitialPieces(std::array<Square, 64> &board);
+    void setupInitialPieces(std::array<Square, 64>& board);
     void gameLoop();
     void handleMouseClick(SDL_Event* event);
-    Square *getSquareAtPosition(std::array<Square, 64> &board, int x, int y);
     bool isCurrentPlayersTurn();
-    bool isValidMove(const Move &move);
-    bool isKingInCheck(std::array<Square, 64> &board, PlayerColor Color);
-    void processMove(int srcX, int srcY, int dstX, int dstY);
+    bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
+    bool isKingInCheck(std::array<Square, 64>& board, PlayerColor Color);
+    void processMove(const std::shared_ptr<Piece>& piece, const Move& move);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);
     void unselectAllSquares();
 
-public:
+  public:
     ChessGame();
     void run();
-};
+  };
 
 } // namespace chess_client
