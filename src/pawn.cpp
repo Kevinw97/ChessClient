@@ -2,8 +2,8 @@
 #include "chess.h"
 
 namespace chess_client {
-  Pawn::Pawn(Square* square, bool isBlack) : Piece(square, isBlack) {
-    loadSurface(isBlack ? "res/b_pawn.png" : "res/w_pawn.png");
+  Pawn::Pawn(Square* square, PieceColor color) : Piece(square, color) {
+    loadSurface(color == BLACK ? "res/b_pawn.png" : "res/w_pawn.png");
   };
 
   std::vector<Move> Pawn::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
@@ -13,19 +13,22 @@ namespace chess_client {
     }
     int x = getPosition().x;
     int y = getPosition().y;
-    int direction = isBlack() ? 1 : -1;
-    int startRow = isBlack() ? 1 : 6;
+    int direction = getColor() == BLACK ? 1 : -1;
+    int startRow = getColor() == BLACK ? 1 : 6;
+
+    Position frontPos = { x, y + direction };
+    if (isValidPosition(frontPos) && !positionIsOccupied(board, frontPos)) {
+      moves.push_back({ frontPos });
+    }
+
     if (getPosition().y == startRow) {
       // Initial double move
       Position nextPos = { x, y + 2 * direction };
-      if (isValidPosition(nextPos) && !positionIsOccupied(board, nextPos)) {
-        moves.push_back({ nextPos, nullptr });
+      if (isValidPosition(nextPos) && !positionIsOccupied(board, frontPos) && !positionIsOccupied(board, nextPos)) {
+        moves.push_back({ nextPos });
       }
     }
-    Position frontPos = { x, y + direction };
-    if (isValidPosition(frontPos) && !positionIsOccupied(board, frontPos)) {
-      moves.push_back({ frontPos, nullptr });
-    }
+
     Position leftDiagonal = { x - 1, y + direction };
     if (isValidPosition(leftDiagonal)) {
       // Regular takeover
@@ -42,6 +45,7 @@ namespace chess_client {
         }
       }
     }
+
     Position rightDiagonal = { x + 1, y + direction };
     if (isValidPosition(rightDiagonal)) {
       // Regular takeover
@@ -59,11 +63,12 @@ namespace chess_client {
         }
       }
     }
+
     return moves;
   };
 
-  void Pawn::performMove(std::array<Square, 64>& board, const Move& move) {
-    m_RowsAdvanced += std::abs(move.dst.y - getPosition().y);
-    Piece::performMove(board, move);
+  void Pawn::performMove(std::array<Square, 64>& board, const Position& pos) {
+    m_RowsAdvanced += std::abs(pos.y - getPosition().y);
+    Piece::performMove(board, pos);
   }
 } // namespace chess_client

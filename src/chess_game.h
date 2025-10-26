@@ -20,8 +20,8 @@ namespace chess_client {
     std::set<std::shared_ptr<Piece>> m_BlackPieces;
     std::shared_ptr<Piece> m_BlackKing = nullptr;
     std::shared_ptr<Piece> m_WhiteKing = nullptr;
-    PlayerColor m_CurrentPlayerColor = WHITE;
-    PlayerColor m_CurrentTurnColor = WHITE;
+    PieceColor m_PlayerColor = WHITE;
+    PieceColor m_CurrentTurnColor = WHITE;
     Square* m_SelectedSquare = nullptr;
     std::vector<Move> m_MovesForSelected;
     std::vector<Action> m_ActionHistory;
@@ -31,7 +31,7 @@ namespace chess_client {
     void handleMouseClick(SDL_Event* event);
     bool isCurrentPlayersTurn();
     bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
-    bool isKingInCheck(std::array<Square, 64>& board, PlayerColor Color);
+    bool isKingInCheck(std::array<Square, 64>& board, PieceColor Color);
     void processMove(const std::shared_ptr<Piece>& piece, const Move& move);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);

@@ -87,7 +87,7 @@ namespace chess_client {
   }
 
   void RenderHandler::capturePiece(const std::shared_ptr<Piece>& piece) {
-    PlayerColor color = piece->isBlack() ? BLACK : WHITE;
+    PieceColor color = piece->getColor();
     if (color == BLACK) {
       m_BlackPiecesCaptured.push_back({ getNextCaptureContainer(color), piece });
     }
@@ -123,7 +123,7 @@ namespace chess_client {
       float h;
   } SDL_FRect;
   */
-  SDL_FRect RenderHandler::getNextCaptureContainer(PlayerColor color) {
+  SDL_FRect RenderHandler::getNextCaptureContainer(PieceColor color) {
     const std::vector<CapturedPiece>& pieces = color == WHITE ? m_WhitePiecesCaptured : m_BlackPiecesCaptured;
     float captureAreaWidth = SQUARE_SIZE;
     float captureAreaHeight = BOARD_SIZE;

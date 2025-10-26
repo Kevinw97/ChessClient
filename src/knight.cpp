@@ -1,8 +1,8 @@
 #include "knight.h"
 
 namespace chess_client {
-  Knight::Knight(Square* square, bool isBlack) : Piece(square, isBlack) {
-    loadSurface(isBlack ? "res/b_knight.png" : "res/w_knight.png");
+  Knight::Knight(Square* square, PieceColor color) : Piece(square, color) {
+    loadSurface(color == BLACK ? "res/b_knight.png" : "res/w_knight.png");
   };
 
   /*
@@ -38,7 +38,7 @@ namespace chess_client {
         }
         continue;
       }
-      moves.push_back({ nextPos, nullptr });
+      moves.push_back({ nextPos });
     }
     return moves;
   };

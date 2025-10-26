@@ -1,9 +1,8 @@
 #include "piece.h"
 
 namespace chess_client {
-  Piece::Piece(Square* square, bool isBlack)
-    : m_Square(square), m_isBlack(isBlack), m_isAlive(true),
-    m_Surface(nullptr) {
+  Piece::Piece(Square* square, PieceColor color)
+    : m_Square(square), m_Color(color), m_Surface(nullptr) {
   };
 
   void Piece::loadSurface(const char* filepath) {
@@ -14,11 +13,12 @@ namespace chess_client {
     }
   }
 
-  void Piece::performMove(std::array<Square, 64>& board, const Move& move) {
-    setSquare(getSquareAtPosition(board, move.dst.x, move.dst.y));
+  void Piece::performMove(std::array<Square, 64>& board, const Position& pos) {
+    m_HasMoved = true;
+    setSquare(getSquareAtPosition(board, pos.x, pos.y));
   }
 
   bool Piece::isOpposingPiece(const std::shared_ptr<Piece>& piece) {
-    return piece->isBlack() != m_isBlack;
+    return piece->getColor() != getColor();
   }
 } // namespace chess_client

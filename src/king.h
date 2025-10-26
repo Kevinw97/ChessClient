@@ -5,9 +5,8 @@
 namespace chess_client {
   class King : public Piece {
   private:
-    bool m_inCheck;
   public:
-    King(Square* square, bool isBlack);
+    King(Square* square, PieceColor color);
     std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) override;
   };
 } // namespace chess_client

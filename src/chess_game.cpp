@@ -17,26 +17,26 @@ namespace chess_client {
   void ChessGame::setupInitialPieces(std::array<Square, 64>& board) {
     // Generate pieces
     for (int i = 0; i < 8; i++) {
-      m_WhitePieces.insert(std::make_shared<Pawn>(&board[posToIndex({ i, 6 })], false));
-      m_BlackPieces.insert(std::make_shared<Pawn>(&board[posToIndex({ i, 1 })], true));
+      m_WhitePieces.insert(std::make_shared<Pawn>(&board[posToIndex({ i, 6 })], WHITE));
+      m_BlackPieces.insert(std::make_shared<Pawn>(&board[posToIndex({ i, 1 })], BLACK));
     }
-    m_WhitePieces.insert(std::make_shared<Rook>(&board[posToIndex({ 0, 7 })], false));
-    m_WhitePieces.insert(std::make_shared<Rook>(&board[posToIndex({ 7, 7 })], false));
-    m_WhitePieces.insert(std::make_shared<Knight>(&board[posToIndex({ 1, 7 })], false));
-    m_WhitePieces.insert(std::make_shared<Knight>(&board[posToIndex({ 6, 7 })], false));
-    m_WhitePieces.insert(std::make_shared<Bishop>(&board[posToIndex({ 2, 7 })], false));
-    m_WhitePieces.insert(std::make_shared<Bishop>(&board[posToIndex({ 5, 7 })], false));
-    m_WhitePieces.insert(std::make_shared<Queen>(&board[posToIndex({ 3, 7 })], false));
-    m_BlackPieces.insert(std::make_shared<Rook>(&board[posToIndex({ 0, 0 })], true));
-    m_BlackPieces.insert(std::make_shared<Rook>(&board[posToIndex({ 7, 0 })], true));
-    m_BlackPieces.insert(std::make_shared<Knight>(&board[posToIndex({ 1, 0 })], true));
-    m_BlackPieces.insert(std::make_shared<Knight>(&board[posToIndex({ 6, 0 })], true));
-    m_BlackPieces.insert(std::make_shared<Bishop>(&board[posToIndex({ 2, 0 })], true));
-    m_BlackPieces.insert(std::make_shared<Bishop>(&board[posToIndex({ 5, 0 })], true));
-    m_BlackPieces.insert(std::make_shared<Queen>(&board[posToIndex({ 3, 0 })], true));
+    m_WhitePieces.insert(std::make_shared<Rook>(&board[posToIndex({ 0, 7 })], WHITE));
+    m_WhitePieces.insert(std::make_shared<Rook>(&board[posToIndex({ 7, 7 })], WHITE));
+    m_WhitePieces.insert(std::make_shared<Knight>(&board[posToIndex({ 1, 7 })], WHITE));
+    m_WhitePieces.insert(std::make_shared<Knight>(&board[posToIndex({ 6, 7 })], WHITE));
+    m_WhitePieces.insert(std::make_shared<Bishop>(&board[posToIndex({ 2, 7 })], WHITE));
+    m_WhitePieces.insert(std::make_shared<Bishop>(&board[posToIndex({ 5, 7 })], WHITE));
+    m_WhitePieces.insert(std::make_shared<Queen>(&board[posToIndex({ 3, 7 })], WHITE));
+    m_BlackPieces.insert(std::make_shared<Rook>(&board[posToIndex({ 0, 0 })], BLACK));
+    m_BlackPieces.insert(std::make_shared<Rook>(&board[posToIndex({ 7, 0 })], BLACK));
+    m_BlackPieces.insert(std::make_shared<Knight>(&board[posToIndex({ 1, 0 })], BLACK));
+    m_BlackPieces.insert(std::make_shared<Knight>(&board[posToIndex({ 6, 0 })], BLACK));
+    m_BlackPieces.insert(std::make_shared<Bishop>(&board[posToIndex({ 2, 0 })], BLACK));
+    m_BlackPieces.insert(std::make_shared<Bishop>(&board[posToIndex({ 5, 0 })], BLACK));
+    m_BlackPieces.insert(std::make_shared<Queen>(&board[posToIndex({ 3, 0 })], BLACK));
 
-    m_WhiteKing = std::make_shared<King>(&board[posToIndex({ 4, 7 })], false);
-    m_BlackKing = std::make_shared<King>(&board[posToIndex({ 4, 0 })], true);
+    m_WhiteKing = std::make_shared<King>(&board[posToIndex({ 4, 7 })], WHITE);
+    m_BlackKing = std::make_shared<King>(&board[posToIndex({ 4, 0 })], BLACK);
 
     m_WhitePieces.insert(m_WhiteKing);
     m_BlackPieces.insert(m_BlackKing);
@@ -96,8 +96,7 @@ namespace chess_client {
       LOG_COUT("You must select one of your own pieces");
       return;
     }
-    if (clickedSquare->occupyingPiece->isBlack() && m_CurrentTurnColor == WHITE ||
-      !clickedSquare->occupyingPiece->isBlack() && m_CurrentTurnColor == BLACK) {
+    if (clickedSquare->occupyingPiece->getColor() != m_CurrentTurnColor) {
       LOG_COUT("You clicked on an opponent's piece");
       return;
     }
@@ -157,10 +156,17 @@ namespace chess_client {
       m_RenderHandler.capturePiece(move.capturedPiece);
     }
 
-    piece->performMove(m_Board, move);
+    piece->performMove(m_Board, move.dst);
     dstSquare->occupyingPiece = std::move(srcSquare->occupyingPiece);
 
+    // Castling
+    if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
+      Square* rookSrcSquare = getSquareAtPosition(m_Board, move.castlingRook->getPosition().x, move.castlingRook->getPosition().y);
+      Square* rookDstSquare = getSquareAtPosition(m_Board, move.castlingRookDst.x, move.castlingRookDst.y);
 
+      move.castlingRook->performMove(m_Board, move.castlingRookDst);
+      rookDstSquare->occupyingPiece = std::move(rookSrcSquare->occupyingPiece);
+    }
 
     // Switch turn
     m_CurrentTurnColor = m_CurrentTurnColor == BLACK ? WHITE : BLACK;
@@ -175,6 +181,7 @@ namespace chess_client {
         };
       }
     }
+
   CHECKMATE_CHECK_EXIT:
     if (currentColorCheckmate) {
       if (m_CurrentTurnColor == BLACK) {
@@ -186,7 +193,7 @@ namespace chess_client {
     }
 
     // For now, switch players, until 2p capabilities or bot capabilities added
-    m_CurrentPlayerColor = m_CurrentPlayerColor == BLACK ? WHITE : BLACK;
+    m_PlayerColor = m_PlayerColor == BLACK ? WHITE : BLACK;
   }
 
   bool ChessGame::isValidMove(const std::shared_ptr<Piece>& piece, const Move& move) {
@@ -198,10 +205,16 @@ namespace chess_client {
       move.capturedPiece->setIsAlive(false);
     }
 
-    const Position& piecePos = piece->getPosition();
-
+    const Position &piecePos = piece->getPosition();
     Square* selectedSquareCopy = getSquareAtPosition(boardCopy, piecePos.x, piecePos.y);
     boardCopy[posToIndex(move.dst)].occupyingPiece = std::move(selectedSquareCopy->occupyingPiece);
+
+    // If castling, move rook to the castling position as well
+    if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
+      const Position& rookPos = move.castlingRook->getPosition();
+      Square* rookSquareCopy = getSquareAtPosition(boardCopy, rookPos.x, rookPos.y);
+      boardCopy[posToIndex(move.castlingRookDst)].occupyingPiece = std::move(rookSquareCopy->occupyingPiece);
+    }
 
     bool isValidMove = !isKingInCheck(boardCopy, m_CurrentTurnColor);
 
@@ -212,7 +225,7 @@ namespace chess_client {
     return isValidMove;
   }
 
-  bool ChessGame::isKingInCheck(std::array<Square, 64>& board, PlayerColor Color) {
+  bool ChessGame::isKingInCheck(std::array<Square, 64>& board, PieceColor Color) {
 
     const std::set<std::shared_ptr<Piece>>& opponentsPieces = Color == WHITE ? m_BlackPieces : m_WhitePieces;
     const std::shared_ptr<Piece>& myKing = Color == WHITE ? m_WhiteKing : m_BlackKing;
@@ -230,7 +243,7 @@ namespace chess_client {
   }
 
   bool ChessGame::isCurrentPlayersTurn() {
-    return m_CurrentPlayerColor == m_CurrentTurnColor;
+    return m_CurrentTurnColor == m_PlayerColor;
   }
 
   void ChessGame::unselectAllSquares() {

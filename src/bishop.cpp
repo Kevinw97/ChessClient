@@ -1,7 +1,7 @@
 #include "bishop.h"
 namespace chess_client {
-  Bishop::Bishop(Square* square, bool isBlack) : Piece(square, isBlack) {
-    loadSurface(isBlack ? "res/b_bishop.png" : "res/w_bishop.png");
+  Bishop::Bishop(Square* square, PieceColor color) : Piece(square, color) {
+    loadSurface(color == BLACK ? "res/b_bishop.png" : "res/w_bishop.png");
   };
   /*
   The diagonal directions are denoted like so:
@@ -34,7 +34,7 @@ namespace chess_client {
           }
           return;
         }
-        moves.push_back({ nextPos, nullptr });
+        moves.push_back({ nextPos });
       }
       };
     addMovesForDirection({ -1, -1 });

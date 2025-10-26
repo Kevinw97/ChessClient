@@ -35,7 +35,7 @@ namespace chess_client {
     void drawChessBoard(const std::array<Square, 64>& board);
     void capturePiece(const std::shared_ptr<Piece>& piece);
     void drawCapturedPieces();
-    SDL_FRect getNextCaptureContainer(PlayerColor color);
+    SDL_FRect getNextCaptureContainer(PieceColor color);
     void generateInitialBoard(std::array<Square, 64>& board);
     void unselectAllSquares();
     float getPadding(const Square& square) const { return 0.10f * square.rect.w; }

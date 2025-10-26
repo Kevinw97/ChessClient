@@ -32,6 +32,8 @@ namespace chess_client {
   struct Move {
     Position dst;
     std::shared_ptr<Piece> capturedPiece;
+    Position castlingRookDst;
+    std::shared_ptr<Piece> castlingRook;
   };
 
   struct Action {
@@ -61,7 +63,7 @@ namespace chess_client {
     std::shared_ptr<Piece> occupyingPiece;
   };
 
-  enum PlayerColor : bool {
+  enum PieceColor : bool {
     WHITE,
     BLACK
   };

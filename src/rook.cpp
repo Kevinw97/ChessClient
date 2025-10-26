@@ -1,8 +1,8 @@
 #include "rook.h"
 
 namespace chess_client {
-  Rook::Rook(Square* square, bool isBlack) : Piece(square, isBlack) {
-    loadSurface(isBlack ? "res/b_rook.png" : "res/w_rook.png");
+  Rook::Rook(Square* square, PieceColor color) : Piece(square, color) {
+    loadSurface(color == BLACK ? "res/b_rook.png" : "res/w_rook.png");
   };
   /*
   The rook's directions are denoted like so:
@@ -39,7 +39,7 @@ namespace chess_client {
           }
           return;
         }
-        moves.push_back({ nextPos, nullptr });
+        moves.push_back({ nextPos });
       }
       };
     addMovesForDirection({ 0, -1 });

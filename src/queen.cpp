@@ -1,8 +1,8 @@
 #include "queen.h"
 
 namespace chess_client {
-  Queen::Queen(Square* square, bool isBlack) : Piece(square, isBlack) {
-    loadSurface(isBlack ? "res/b_queen.png" : "res/w_queen.png");
+  Queen::Queen(Square* square, PieceColor color) : Piece(square, color) {
+    loadSurface(color == BLACK ? "res/b_queen.png" : "res/w_queen.png");
   };
 
   // Queen literally moves like how a bishop + rook move
@@ -25,7 +25,7 @@ namespace chess_client {
           }
           return;
         }
-        moves.push_back({ nextPos, nullptr });
+        moves.push_back({ nextPos });
       }
       };
     addMovesForDirection({ 0, -1 });
