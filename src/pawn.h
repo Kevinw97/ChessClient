@@ -17,6 +17,6 @@ namespace chess_client {
     void promotePiece(PieceType type);
     void undoPromote();
     void resetPiece(std::array<Square, 64>& board) override;
-    std::string getType() { return std::string("Pawn"); };
+    std::string getType() override { return std::string("Pawn"); };
   };
 } // namespace chess_client

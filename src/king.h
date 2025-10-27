@@ -7,6 +7,6 @@ namespace chess_client {
   public:
     King(Square* square, PieceColor color);
     std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) override;
-    std::string getType() { return std::string("King"); };
+    std::string getType() override { return std::string("King"); };
   };
 } // namespace chess_client

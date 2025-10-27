@@ -159,6 +159,10 @@ namespace chess_client {
       m_PromotedPiece = std::make_unique<Queen>(getSquare(), getColor());
       break;
     }
+    default: {
+      std::cerr << "Should not have called promote with this type\n";
+      throw std::runtime_error("Wrong promotion type\n");
+    }
     }
     return;
   }

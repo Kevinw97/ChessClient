@@ -17,6 +17,7 @@ namespace chess_client {
 
   public:
     Piece(Square* square, PieceColor color);
+    virtual ~Piece() = default;
     void loadSurface(const char* filepath);
     virtual void setIsAlive(bool isAlive) { m_isAlive = isAlive; }
     bool isAlive() const { return m_isAlive; }
