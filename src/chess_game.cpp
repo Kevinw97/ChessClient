@@ -185,7 +185,7 @@ namespace chess_client {
     return;
   }
 
-  void ChessGame::processMove(const std::shared_ptr<Piece>& piece, Move& move, bool pushToHistory) {
+  void ChessGame::processMove(const std::shared_ptr<Piece>& piece, Move& move) {
     // This assumes that the move is already validated and generates the next state
     // and also checks if the next state would put the player in checkmate.
 
@@ -215,9 +215,7 @@ namespace chess_client {
     }
 
     // Push performed action to stack
-    if (pushToHistory) {
-      m_ActionHistory.push_back({ dstSquare->occupyingPiece, move });
-    }
+    m_ActionHistory.push_back({ dstSquare->occupyingPiece, move });
 
     // Switch turn
     m_CurrentTurnColor = m_CurrentTurnColor == BLACK ? WHITE : BLACK;

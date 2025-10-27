@@ -36,7 +36,7 @@ namespace chess_client {
     bool isCurrentPlayersTurn();
     bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
     bool isKingInCheck(std::array<Square, 64>& board, PieceColor Color);
-    void processMove(const std::shared_ptr<Piece>& piece, Move& move, bool pushToHistory = true);
+    void processMove(const std::shared_ptr<Piece>& piece, Move& move);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);
     void unselectAllSquares();
