@@ -28,7 +28,8 @@
     <ClCompile Include="src\piece.cpp" />
     <ClCompile Include="src\queen.cpp" />
     <ClCompile Include="src\rook.cpp" />
-    <ClCompile Include="src\render_handler.cpp" />
+    <ClCompile Include="src\sdl_audio_handler.cpp" />
+    <ClCompile Include="src\sdl_render_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\b_bishop.png" />
@@ -54,7 +55,12 @@
     <ClInclude Include="src\piece.h" />
     <ClInclude Include="src\queen.h" />
     <ClInclude Include="src\rook.h" />
-    <ClInclude Include="src\render_handler.h" />
+    <ClInclude Include="src\sdl_audio_handler.h" />
+    <ClInclude Include="src\sdl_render_handler.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="res\capture.wav" />
+    <Media Include="res\move.wav" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

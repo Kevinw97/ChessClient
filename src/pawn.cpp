@@ -34,21 +34,21 @@ namespace chess_client {
     if (!isAlive()) {
       return moves;
     }
-    int x = getPosition().x;
-    int y = getPosition().y;
+    const int x = getSquare()->x;
+    const int y = getSquare()->y;
     int direction = getColor() == BLACK ? 1 : -1;
     int startRow = getColor() == BLACK ? 1 : 6;
 
     Position frontPos = { x, y + direction };
     if (isValidPosition(frontPos) && !positionIsOccupied(board, frontPos)) {
-      moves.push_back({ getPosition(), frontPos });
+      moves.push_back({ getSquare()->pos, frontPos});
     }
 
-    if (getPosition().y == startRow) {
+    if (y == startRow) {
       // Initial double move
       Position nextPos = { x, y + 2 * direction };
       if (isValidPosition(nextPos) && !positionIsOccupied(board, frontPos) && !positionIsOccupied(board, nextPos)) {
-        moves.push_back({ getPosition(), nextPos });
+        moves.push_back({ getSquare()->pos, nextPos});
       }
     }
 
@@ -57,14 +57,14 @@ namespace chess_client {
       // Regular takeover
       if (positionIsOccupied(board, leftDiagonal) &&
         isOpposingPiece(board[posToIndex(leftDiagonal)].occupyingPiece)) {
-        moves.push_back({ getPosition(), leftDiagonal, board[posToIndex(leftDiagonal)].occupyingPiece });
+        moves.push_back({ getSquare()->pos, leftDiagonal, board[posToIndex(leftDiagonal)].occupyingPiece});
       }
       // En passante
       if (m_RowsAdvanced == 3 && positionIsOccupied(board, { x - 1, y })) {
         const std::shared_ptr<Piece>& occupyingPiece = board[posToIndex({ x - 1, y })].occupyingPiece;
         if (isOpposingPiece(occupyingPiece) &&
           actionHistory.back().piece == occupyingPiece) {
-          moves.push_back({ getPosition(), leftDiagonal, occupyingPiece });
+          moves.push_back({ getSquare()->pos, leftDiagonal, occupyingPiece});
         }
       }
     }
@@ -74,14 +74,14 @@ namespace chess_client {
       // Regular takeover
       if (positionIsOccupied(board, rightDiagonal) &&
         isOpposingPiece(board[posToIndex(rightDiagonal)].occupyingPiece)) {
-        moves.push_back({ getPosition(), rightDiagonal, board[posToIndex(rightDiagonal)].occupyingPiece });
+        moves.push_back({ getSquare()->pos, rightDiagonal, board[posToIndex(rightDiagonal)].occupyingPiece});
       }
       // En passante
       if (m_RowsAdvanced == 3 && positionIsOccupied(board, { x + 1, y })) {
         const std::shared_ptr<Piece>& occupyingPiece = board[posToIndex({ x + 1, y })].occupyingPiece;
         if (isOpposingPiece(occupyingPiece) &&
           actionHistory.back().piece == occupyingPiece) {
-          moves.push_back({ getPosition(), rightDiagonal, occupyingPiece });
+          moves.push_back({ getSquare()->pos, rightDiagonal, occupyingPiece});
         }
       }
     }
@@ -90,14 +90,17 @@ namespace chess_client {
   };
 
   void Pawn::performMove(std::array<Square, 64>& board, Move& move) {
-    Position& pos = move.dst;
     if (m_PromotedPiece) {
       m_PromotedPiece->performMove(board, move);
     }
-    m_RowsAdvanced += std::abs(pos.y - getPosition().y);
+    if (m_RowsAdvanced < 6) {
+      m_RowsAdvanced = getColor() == BLACK ? move.dst.y - getInitialPosition().y : getInitialPosition().y - move.dst.y;
+    }
+
     Piece::performMove(board, move);
+
     if (!m_PromotedPiece && m_RowsAdvanced == 6) {
-      std::cout << "Pawn promotion! Choose a piece (rook, bishop, knight, queen): ";
+      std::cout << "Pawn promotion. Choose a piece (rook, bishop, knight, queen): ";
       std::string pieceInput;
       PieceType selectedType = QUEEN; // Default to queen
       while (std::getline(std::cin, pieceInput)) {
@@ -119,13 +122,17 @@ namespace chess_client {
           break;
         }
         else {
-          std::cout << "Invalid input. Please enter rook, bishop, knight, or queen: ";
+          std::cout << "Invalid input. Choose rook, bishop, knight, or queen: ";
         }
       }
       move.promoteType = selectedType;
       promotePiece(selectedType);
     }
   };
+
+  void Pawn::undoPromote() {
+    m_PromotedPiece.reset();
+  }
 
   void Pawn::promotePiece(PieceType type) {
     if (m_RowsAdvanced != 6 || m_PromotedPiece) {

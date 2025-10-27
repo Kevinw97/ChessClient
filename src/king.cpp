@@ -16,8 +16,8 @@ namespace chess_client {
     if (!isAlive()) {
       return moves;
     }
-    int x = getPosition().x;
-    int y = getPosition().y;
+    int x = getSquare()->x;
+    int y = getSquare()->y;
     Position possibleMoves[] = {
       {-1, -1},  // 0
       {0, -1},   // 1
@@ -34,11 +34,11 @@ namespace chess_client {
       }
       if (positionIsOccupied(board, nextPos)) {
         if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
-          moves.push_back({ getPosition(), nextPos, board[posToIndex(nextPos)].occupyingPiece });
+          moves.push_back({ getSquare()->pos, nextPos, board[posToIndex(nextPos)].occupyingPiece});
         }
         continue;
       }
-      moves.push_back({ getPosition(), nextPos });
+      moves.push_back({ getSquare()->pos, nextPos});
     }
 
     // Castling check: Queen side black rook will be at {0, 0}, king side will be at {7, 0}
@@ -57,7 +57,7 @@ namespace chess_client {
         const Square& queenSideSquare = board[posToIndex(queenSideRookPos)];
         if (std::dynamic_pointer_cast<Rook>(queenSideSquare.occupyingPiece) && !queenSideSquare.occupyingPiece->hasMoved()) {
           moves.push_back({ 
-            getPosition(), 
+            getSquare()->pos,
             {x - 2, y}, 
             nullptr, 
             queenSideRookPos, 
@@ -78,7 +78,7 @@ namespace chess_client {
         const Square& kingSideSquare = board[posToIndex(kingSideRookPos)];
         if (std::dynamic_pointer_cast<Rook>(kingSideSquare.occupyingPiece) && !kingSideSquare.occupyingPiece->hasMoved()) {
           moves.push_back({ 
-            getPosition(), 
+            getSquare()->pos,
             {x + 2, y}, 
             nullptr, 
             kingSideRookPos,

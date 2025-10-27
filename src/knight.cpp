@@ -17,8 +17,8 @@ namespace chess_client {
     if (!isAlive()) {
       return moves;
     }
-    int x = getPosition().x;
-    int y = getPosition().y;
+    int x = getSquare()->x;
+    int y = getSquare()->y;
     Position possibleMoves[] = { {-1, -2},  // 0
                                 {1, -2},   // 1
                                 {2, -1},   // 2
@@ -34,11 +34,11 @@ namespace chess_client {
       }
       if (positionIsOccupied(board, nextPos)) {
         if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
-          moves.push_back({ getPosition(), nextPos, board[posToIndex(nextPos)].occupyingPiece });
+          moves.push_back({ getSquare()->pos, nextPos, board[posToIndex(nextPos)].occupyingPiece});
         }
         continue;
       }
-      moves.push_back({ getPosition(), nextPos });
+      moves.push_back({ getSquare()->pos, nextPos });
     }
     return moves;
   };

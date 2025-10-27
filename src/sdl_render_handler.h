@@ -34,6 +34,7 @@ namespace chess_client {
     bool init();
     void drawChessBoard(const std::array<Square, 64>& board);
     void capturePiece(const std::shared_ptr<Piece>& piece);
+    void undoCapture(PieceColor color);
     void drawCapturedPieces();
     void clearCapturedPieces();
     SDL_FRect getNextCaptureContainer(PieceColor color);

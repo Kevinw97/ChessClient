@@ -16,8 +16,14 @@ namespace chess_client {
   }
 
   void Piece::performMove(std::array<Square, 64>& board, Move& move) {
-    setSquare(getSquareAtPosition(board, move.dst.x, move.dst.y));
-    setMoved(true);
+    setSquare(getSquareAtPosition(board, move.dst));
+    if (!hasMoved()) {
+      setMoved(true);
+      move.firstMove = true;
+    }
+    if (move.firstMove) { // We are undoing a piece move, reset the flag
+      setMoved(false);
+    }
   }
 
   bool Piece::isOpposingPiece(const std::shared_ptr<Piece>& piece) {
@@ -25,7 +31,7 @@ namespace chess_client {
   }
 
   void Piece::resetPiece(std::array<Square, 64>& board) {
-    Square* square = getSquareAtPosition(board, m_InitialPosition.x, m_InitialPosition.y);
+    Square* square = getSquareAtPosition(board, m_InitialPosition);
     setSquare(square);
     setIsAlive(true);
     setMoved(false);

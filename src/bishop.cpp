@@ -23,8 +23,8 @@ namespace chess_client {
     if (!isAlive()) {
       return moves;
     }
-    int x = getPosition().x;
-    int y = getPosition().y;
+    int x = getSquare()->x;
+    int y = getSquare()->y;
     auto addMovesForDirection = [&](Position direction) {
       for (int i = 1; i < 8; i++) {
         Position nextPos = { x + i * direction.x, y + i * direction.y };
@@ -33,11 +33,11 @@ namespace chess_client {
         }
         if (positionIsOccupied(board, nextPos)) {
           if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
-            moves.push_back({ getPosition(), nextPos, board[posToIndex(nextPos)].occupyingPiece });
+            moves.push_back({ getSquare()->pos, nextPos, board[posToIndex(nextPos)].occupyingPiece});
           }
           return;
         }
-        moves.push_back({ getPosition(), nextPos });
+        moves.push_back({ getSquare()->pos, nextPos});
       }
       };
     addMovesForDirection({ -1, -1 });

@@ -1,5 +1,6 @@
 #include "chess_game.h"
-#include "render_handler.h"
+#include "sdl_render_handler.h"
+#include "sdl_audio_handler.h"
 #include <iostream>
 #include <thread>
 
@@ -42,12 +43,12 @@ namespace chess_client {
     m_BlackPieces.insert(m_BlackKing);
 
     for (const auto& piece : m_WhitePieces) {
-      int index = posToIndex({ piece->getPosition().x, piece->getPosition().y });
+      int index = posToIndex(piece->getSquare()->pos);
       m_Board[index].occupyingPiece = piece;
     }
 
     for (const auto& piece : m_BlackPieces) {
-      int index = posToIndex({ piece->getPosition().x, piece->getPosition().y });
+      int index = posToIndex(piece->getSquare()->pos);
       m_Board[index].occupyingPiece = piece;
     }
   }
@@ -64,6 +65,16 @@ namespace chess_client {
           break;
         }
         handleMouseClick(&event);
+        ////// Print shared_ptr usages to validate usage
+        LOG_PRINTF("POINTER USE COUNT FOR WHITE PIECES: ----------\n");
+        for (const auto& piece : m_WhitePieces) {
+          LOG_PRINTF("%s: %d\n", piece->getType().c_str(), piece.use_count());
+        }
+        LOG_PRINTF("POINTER USE COUNT FOR BLACK PIECES: ----------\n");
+        for (const auto& piece : m_BlackPieces) {
+          LOG_PRINTF("%s: %d\n", piece->getType().c_str(), piece.use_count());
+        }
+        ////// ----------------------------------------
         m_RenderHandler.drawChessBoard(m_Board);
         m_RenderHandler.drawCapturedPieces();
         break;
@@ -74,6 +85,18 @@ namespace chess_client {
         }
         if (event.key.key == SDLK_LEFT) {
           undoMove();
+          ////// Print shared_ptr usages to validate usage
+          LOG_PRINTF("POINTER USE COUNT FOR WHITE PIECES: ----------\n");
+          for (const auto& piece : m_WhitePieces) {
+            LOG_PRINTF("%s: %d\n", piece->getType().c_str(), piece.use_count());
+          }
+          LOG_PRINTF("POINTER USE COUNT FOR BLACK PIECES: ----------\n");
+          for (const auto& piece : m_BlackPieces) {
+            LOG_PRINTF("%s: %d\n", piece->getType().c_str(), piece.use_count());
+          }
+          ////// ----------------------------------------
+          m_RenderHandler.drawChessBoard(m_Board);
+          m_RenderHandler.drawCapturedPieces();
         }
         break;
       }
@@ -118,7 +141,7 @@ namespace chess_client {
   }
 
   void ChessGame::selectSource(int x, int y) {
-    Square* clickedSquare = getSquareAtPosition(m_Board, x, y);
+    Square* clickedSquare = getSquareAtPosition(m_Board, { x, y });
     if (!clickedSquare) {
       LOG_COUT("Clicked outside of the Chess board");
       return;
@@ -139,7 +162,7 @@ namespace chess_client {
       if (!isValidMove(m_SelectedSquare->occupyingPiece, move)) {
         continue;
       };
-      Square* targetSquare = getSquareAtPosition(m_Board, move.dst.x, move.dst.y);
+      Square* targetSquare = getSquareAtPosition(m_Board, move.dst);
       if (!targetSquare) {
         std::cerr << "No target square found\n";
         throw std::runtime_error("No target square found\n");
@@ -162,18 +185,17 @@ namespace chess_client {
     return;
   }
 
-  // TODO: Implement undo logic
-  void ChessGame::processMove(const std::shared_ptr<Piece>& piece, Move& move, bool undo) {
+  void ChessGame::processMove(const std::shared_ptr<Piece>& piece, Move& move, bool pushToHistory) {
     // This assumes that the move is already validated and generates the next state
     // and also checks if the next state would put the player in checkmate.
-    Square* srcSquare = getSquareAtPosition(m_Board, piece->getPosition().x, piece->getPosition().y);
-    Square* dstSquare = getSquareAtPosition(m_Board, move.dst.x, move.dst.y);
+
+    Square* srcSquare = piece->getSquare();
+    Square* dstSquare = getSquareAtPosition(m_Board, move.dst);
 
 
     if (move.capturedPiece) {
       // Captured piece is not always the destination square in moves like en passante
-      Position capturedPos = move.capturedPiece->getPosition();
-      Square* capturedSquare = getSquareAtPosition(m_Board, capturedPos.x, capturedPos.y);
+      Square* capturedSquare = move.capturedPiece->getSquare();
       capturedSquare->occupyingPiece = nullptr;
 
       move.capturedPiece->setIsAlive(false);
@@ -185,15 +207,17 @@ namespace chess_client {
 
     // Castling
     if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
-      Square* rookSrcSquare = getSquareAtPosition(m_Board, move.castlingRook->getPosition().x, move.castlingRook->getPosition().y);
-      Square* rookDstSquare = getSquareAtPosition(m_Board, move.castlingRookDst.x, move.castlingRookDst.y);
+      Square* rookSrcSquare = move.castlingRook->getSquare();
+      Square* rookDstSquare = getSquareAtPosition(m_Board, move.castlingRookDst);
 
       move.castlingRook->performMove(m_Board, move);
       rookDstSquare->occupyingPiece = std::move(rookSrcSquare->occupyingPiece);
     }
 
     // Push performed action to stack
-    m_ActionHistory.push_back({ dstSquare->occupyingPiece, move });
+    if (pushToHistory) {
+      m_ActionHistory.push_back({ dstSquare->occupyingPiece, move });
+    }
 
     // Switch turn
     m_CurrentTurnColor = m_CurrentTurnColor == BLACK ? WHITE : BLACK;
@@ -225,16 +249,12 @@ namespace chess_client {
     // For now, switch players, until 2p capabilities or bot capabilities added
     m_PlayerColor = m_PlayerColor == BLACK ? WHITE : BLACK;
 
-    ////// Print shared_ptr usages to validate usage
-    LOG_PRINTF("POINTER USE COUNT FOR WHITE PIECES: ----------\n");
-    for (const auto& piece : m_WhitePieces) {
-      LOG_PRINTF("%s: %d\n", piece->getType().c_str(), piece.use_count());
+    if (move.capturedPiece) {
+      m_AudioHandler.playCaptureSound();
     }
-    LOG_PRINTF("POINTER USE COUNT FOR BLACK PIECES: ----------\n");
-    for (const auto& piece : m_BlackPieces) {
-      LOG_PRINTF("%s: %d\n", piece->getType().c_str(), piece.use_count());
+    else {
+      m_AudioHandler.playMoveSound();
     }
-    ////// ----------------------------------------
   }
 
   bool ChessGame::isValidMove(const std::shared_ptr<Piece>& piece, const Move& move) {
@@ -246,14 +266,14 @@ namespace chess_client {
       move.capturedPiece->setIsAlive(false);
     }
 
-    const Position &piecePos = piece->getPosition();
-    Square* selectedSquareCopy = getSquareAtPosition(boardCopy, piecePos.x, piecePos.y);
+    const Position &piecePos = piece->getSquare()->pos;
+    Square *selectedSquareCopy = getSquareAtPosition(boardCopy, piecePos);
     boardCopy[posToIndex(move.dst)].occupyingPiece = std::move(selectedSquareCopy->occupyingPiece);
 
     // If castling, move rook to the castling position as well
     if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
-      const Position& rookPos = move.castlingRook->getPosition();
-      Square* rookSquareCopy = getSquareAtPosition(boardCopy, rookPos.x, rookPos.y);
+      const Position &rookPos = move.castlingRook->getSquare()->pos;
+      Square *rookSquareCopy = getSquareAtPosition(boardCopy, piecePos);
       boardCopy[posToIndex(move.castlingRookDst)].occupyingPiece = std::move(rookSquareCopy->occupyingPiece);
     }
 
@@ -296,7 +316,47 @@ namespace chess_client {
   }
 
   void ChessGame::undoMove() {
+    if (m_ActionHistory.empty()) {
+      return;
+    }
+    Action previousAction = m_ActionHistory.back();
+    Move move = previousAction.move;
+    std::shared_ptr<Piece> piece = previousAction.piece;
+    m_ActionHistory.pop_back();
 
+    std::swap(move.src, move.dst);
+    std::swap(move.castlingRookSrc, move.castlingRookDst);
+
+    Square* srcSquare = piece->getSquare();
+    Square* dstSquare = getSquareAtPosition(m_Board, move.dst);
+
+    piece->performMove(m_Board, move);
+    dstSquare->occupyingPiece = std::move(srcSquare->occupyingPiece);
+
+    if (move.capturedPiece) {
+      // Revive piece that was captured, it should still reference
+      // the square that it was captured from
+      Square* capturedSquare = move.capturedPiece->getSquare();
+      capturedSquare->occupyingPiece = move.capturedPiece;
+
+      move.capturedPiece->setIsAlive(true);
+      m_RenderHandler.undoCapture(move.capturedPiece->getColor());
+    }
+
+    // Undo castling
+    if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
+      Square* rookSrcSquare = move.castlingRook->getSquare();
+      Square* rookDstSquare = getSquareAtPosition(m_Board, move.castlingRookDst);
+
+      move.castlingRook->performMove(m_Board, move);
+      rookDstSquare->occupyingPiece = std::move(rookSrcSquare->occupyingPiece);
+    }
+
+    // Switch turn
+    m_CurrentTurnColor = m_CurrentTurnColor == BLACK ? WHITE : BLACK;
+
+    // For now, switch players, until 2p capabilities or bot capabilities added
+    m_PlayerColor = m_PlayerColor == BLACK ? WHITE : BLACK;
   }
 
   void ChessGame::resetGame() {
@@ -305,12 +365,12 @@ namespace chess_client {
     }
     for (auto& piece : m_WhitePieces) {
       piece->resetPiece(m_Board);
-      Square* initialSquare = getSquareAtPosition(m_Board, piece->getInitialPosition().x, piece->getInitialPosition().y);
+      Square* initialSquare = getSquareAtPosition(m_Board, piece->getInitialPosition());
       initialSquare->occupyingPiece = piece;
     }
     for (auto& piece : m_BlackPieces) {
       piece->resetPiece(m_Board);
-      Square* initialSquare = getSquareAtPosition(m_Board, piece->getInitialPosition().x, piece->getInitialPosition().y);
+      Square* initialSquare = getSquareAtPosition(m_Board, piece->getInitialPosition());
       initialSquare->occupyingPiece = piece;
     }
     unselectAllSquares();

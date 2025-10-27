@@ -50,10 +50,11 @@ namespace chess_client {
     Position src;
     Position dst;
     std::shared_ptr<Piece> capturedPiece;
-    Position castlingRootSrc;
+    Position castlingRookSrc;
     Position castlingRookDst;
     std::shared_ptr<Piece> castlingRook;
     PieceType promoteType;
+    bool firstMove;
   };
 
   struct Action {
@@ -87,7 +88,7 @@ namespace chess_client {
     return (pos.x >= 0 && pos.x < 8 && pos.y >= 0 && pos.y < 8);
   }
 
-  inline int posToIndex(Position pos) {
+  inline int posToIndex(const Position &pos) {
     if (!isValidPosition(pos)) {
       LOG_COUT("Invalid square position passed to posToIndex");
       return -1;
@@ -99,8 +100,8 @@ namespace chess_client {
     return board[posToIndex(pos)].occupyingPiece != nullptr;
   }
 
-  inline Square* getSquareAtPosition(std::array<Square, 64>& board, int x, int y) {
-    int index = posToIndex({ x, y });
+  inline Square* getSquareAtPosition(std::array<Square, 64>& board, const Position& pos) {
+    int index = posToIndex(pos);
     if (index == -1) {
       return nullptr;
     }

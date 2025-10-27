@@ -18,7 +18,7 @@
     <ClCompile Include="src\chess_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\render_handler.cpp">
+    <ClCompile Include="src\sdl_render_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\chess_game.cpp">
@@ -43,6 +43,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\rook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sdl_audio_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -109,11 +112,22 @@
     <ClInclude Include="src\rook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\render_handler.h">
+    <ClInclude Include="src\sdl_render_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\chess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\sdl_audio_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="res\capture.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="res\move.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
   </ItemGroup>
 </Project>

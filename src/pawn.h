@@ -15,6 +15,7 @@ namespace chess_client {
     void performMove(std::array<Square, 64>& board, Move& pos) override;
     SDL_Surface* getSurface() override;
     void promotePiece(PieceType type);
+    void undoPromote();
     void resetPiece(std::array<Square, 64>& board) override;
     std::string getType() { return std::string("Pawn"); };
   };

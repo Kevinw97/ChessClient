@@ -22,7 +22,6 @@ namespace chess_client {
     bool isAlive() const { return m_isAlive; }
     bool isOpposingPiece(const std::shared_ptr<Piece>& piece);
     PieceColor getColor() const { return m_Color; }
-    Position getPosition() { return m_Square ? m_Square->pos : Position{ -1, -1 }; }
     Position getInitialPosition() { return m_InitialPosition; }
     Square* getSquare() { return m_Square; };
     bool hasMoved() { return m_HasMoved; };

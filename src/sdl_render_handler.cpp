@@ -1,4 +1,4 @@
-#include "render_handler.h"
+#include "sdl_render_handler.h"
 #include <iostream>
 #include <thread>
 
@@ -93,6 +93,15 @@ namespace chess_client {
     }
     if (color == WHITE) {
       m_WhitePiecesCaptured.push_back({ getNextCaptureContainer(color), piece });
+    }
+  }
+
+  void RenderHandler::undoCapture(PieceColor color) {
+    if (color == BLACK) {
+      m_BlackPiecesCaptured.pop_back();
+    }
+    if (color == WHITE) {
+      m_WhitePiecesCaptured.pop_back();
     }
   }
 

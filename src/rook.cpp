@@ -24,8 +24,8 @@ namespace chess_client {
     if (!isAlive()) {
       return moves;
     }
-    int x = getPosition().x;
-    int y = getPosition().y;
+    int x = getSquare()->x;
+    int y = getSquare()->y;
     auto addMovesForDirection = [&](Position direction) {
       for (int i = 1; i < 8; i++) {
         Position nextPos = { x + i * direction.x, y + i * direction.y };
@@ -34,11 +34,11 @@ namespace chess_client {
         }
         if (positionIsOccupied(board, nextPos)) {
           if (isOpposingPiece(board[posToIndex(nextPos)].occupyingPiece)) {
-            moves.push_back({ getPosition(), nextPos, board[posToIndex(nextPos)].occupyingPiece });
+            moves.push_back({ getSquare()->pos, nextPos, board[posToIndex(nextPos)].occupyingPiece });
           }
           return;
         }
-        moves.push_back({ getPosition(), nextPos });
+        moves.push_back({ getSquare()->pos, nextPos });
       }
       };
     addMovesForDirection({ 0, -1 });
@@ -51,8 +51,14 @@ namespace chess_client {
 
   void Rook::performMove(std::array<Square, 64>& board, Move& move) {
     if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
-      setSquare(getSquareAtPosition(board, move.castlingRookDst.x, move.castlingRookDst.y));
-      setMoved(true);
+      setSquare(getSquareAtPosition(board, move.castlingRookDst));
+      if (!hasMoved()) {
+        setMoved(true);
+        move.firstMove = true;
+      }
+      if (move.firstMove) { // We are undoing a piece move, reset the flag
+        setMoved(false);
+      }
     }
     else {
       Piece::performMove(board, move);

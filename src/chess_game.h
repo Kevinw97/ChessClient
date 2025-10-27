@@ -6,7 +6,8 @@
 #include "piece.h"
 #include "queen.h"
 #include "rook.h"
-#include "render_handler.h"
+#include "sdl_render_handler.h"
+#include "sdl_audio_handler.h"
 #include "chess.h"
 #include <set>
 
@@ -17,6 +18,7 @@ namespace chess_client {
     bool m_InProgress = true;
     bool m_Running = true;
     RenderHandler m_RenderHandler;
+    AudioHandler m_AudioHandler;
     std::array<Square, 64> m_Board;
     std::set<std::shared_ptr<Piece>> m_WhitePieces;
     std::set<std::shared_ptr<Piece>> m_BlackPieces;
@@ -34,7 +36,7 @@ namespace chess_client {
     bool isCurrentPlayersTurn();
     bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
     bool isKingInCheck(std::array<Square, 64>& board, PieceColor Color);
-    void processMove(const std::shared_ptr<Piece>& piece, Move& move, bool undo = false);
+    void processMove(const std::shared_ptr<Piece>& piece, Move& move, bool pushToHistory = true);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);
     void unselectAllSquares();
