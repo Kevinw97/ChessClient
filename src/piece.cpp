@@ -2,8 +2,8 @@
 
 namespace chess_client {
   Piece::Piece(Square* square, PieceColor color)
-    : m_Square(square)
-    , m_InitialPosition(square->pos)
+    : m_InitialPosition(square->pos)
+    , m_Square(square)
     , m_Color(color)
     , m_Surface(nullptr) {};
 

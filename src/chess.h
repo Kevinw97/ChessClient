@@ -4,7 +4,13 @@
 #include <iostream>
 #include <array>
 #include <memory>
-#include <Windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+// Link the Winsock library
+#pragma comment(lib, "Ws2_32.lib")
+
+#include <windows.h>
 #include <cstdlib>
 #include <algorithm>
 #include <string>

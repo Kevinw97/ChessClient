@@ -8,12 +8,12 @@
 namespace chess_client {
   class Piece {
   private:
+    Position m_InitialPosition;
     Square* m_Square;
-    SDL_Surface* m_Surface;
     PieceColor m_Color;
+    SDL_Surface* m_Surface;
     bool m_isAlive = true;
     bool m_HasMoved = false;
-    Position m_InitialPosition;
 
   public:
     Piece(Square* square, PieceColor color);

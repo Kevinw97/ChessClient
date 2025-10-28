@@ -222,7 +222,7 @@ namespace chess_client {
 
     // Check if current color is in checkmate
     bool currentColorCheckmate = true;
-    for (const std::shared_ptr<Piece> piece : m_CurrentTurnColor == BLACK ? m_BlackPieces : m_WhitePieces) {
+    for (const std::shared_ptr<Piece> &piece : m_CurrentTurnColor == BLACK ? m_BlackPieces : m_WhitePieces) {
       std::vector<Move> possibleMoves = piece->getPossibleMoves(m_Board, m_ActionHistory);
       for (const Move& move : possibleMoves) {
         if (isValidMove(piece, move)) {
@@ -270,7 +270,6 @@ namespace chess_client {
 
     // If castling, move rook to the castling position as well
     if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
-      const Position &rookPos = move.castlingRook->getSquare()->pos;
       Square *rookSquareCopy = getSquareAtPosition(boardCopy, piecePos);
       boardCopy[posToIndex(move.castlingRookDst)].occupyingPiece = std::move(rookSquareCopy->occupyingPiece);
     }
