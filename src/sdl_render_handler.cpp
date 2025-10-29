@@ -6,9 +6,7 @@ namespace chess_client {
   RenderHandler::RenderHandler(const char* title, int width, int height)
     : m_Window(nullptr)
     , m_Renderer(nullptr)
-    , m_Title(title) {
-    init();
-  };
+    , m_Title(title) {};
 
   bool RenderHandler::init() {
     SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);

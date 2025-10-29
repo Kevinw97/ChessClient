@@ -56,7 +56,7 @@ namespace chess_client {
         setMoved(true);
         move.firstMove = true;
       }
-      if (move.firstMove) { // We are undoing a piece move, reset the flag
+      else {
         setMoved(false);
       }
     }

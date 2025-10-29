@@ -1,19 +1,7 @@
 #include "sdl_audio_handler.h"
 
 namespace chess_client {
-  AudioHandler::AudioHandler() {
-    SDL_AudioSpec audio_spec;
-    audio_spec.format = SDL_AUDIO_S16;
-    audio_spec.channels = 2;
-    audio_spec.freq = 48000;
-
-    m_Stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, NULL, NULL);
-    if (!m_Stream) {
-      std::cerr << "Failed to open audio stream: " << SDL_GetError() << std::endl;
-      return;
-    }
-    SDL_ResumeAudioStreamDevice(m_Stream);
-  };
+  AudioHandler::AudioHandler() : m_Stream(nullptr) {};
 
   AudioHandler::~AudioHandler() {
     if (m_Stream) {
@@ -21,7 +9,7 @@ namespace chess_client {
     }
   }
 
-  void AudioHandler::PlayAudioFile(const char* filepath) {
+  void AudioHandler::playAudioFile(const char* filepath) {
     if (!m_Stream) {
       std::cerr << "Audio stream not initialized" << std::endl;
       return;
@@ -47,10 +35,24 @@ namespace chess_client {
   }
 
   void AudioHandler::playMoveSound() {
-    PlayAudioFile("res/move.wav");
+    playAudioFile("res/move.wav");
   };
 
   void AudioHandler::playCaptureSound() {
-    PlayAudioFile("res/capture.wav");
+    playAudioFile("res/capture.wav");
   };
+
+  void AudioHandler::init() {
+    SDL_AudioSpec audio_spec;
+    audio_spec.format = SDL_AUDIO_S16;
+    audio_spec.channels = 2;
+    audio_spec.freq = 48000;
+
+    m_Stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, NULL, NULL);
+    if (!m_Stream) {
+      std::cerr << "Failed to open audio stream: " << SDL_GetError() << std::endl;
+      return;
+    }
+    SDL_ResumeAudioStreamDevice(m_Stream);
+  }
 }  // namespace chess_client

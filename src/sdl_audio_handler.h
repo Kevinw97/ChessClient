@@ -6,11 +6,12 @@ namespace chess_client {
   private:
     SDL_AudioStream* m_Stream;
 
-    void PlayAudioFile(const char* path);
+    void playAudioFile(const char* path);
   public:
     AudioHandler();
     ~AudioHandler();
     void playMoveSound();
     void playCaptureSound();
+    void init();
   };
 }  // namespace chess_client

@@ -7,6 +7,6 @@ class Bishop : public Piece {
 public:
   Bishop(Square *square, PieceColor color);
   std::vector<Move> getPossibleMoves(const std::array<Square, 64> &board, const std::vector<Action> &actionHistory) override;
-  std::string getType() override { return std::string("Bishop"); };
+  PieceType getType() override { return BISHOP; };
 };
 } // namespace chess_client

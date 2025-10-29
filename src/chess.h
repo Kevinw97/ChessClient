@@ -6,6 +6,10 @@
 #include <memory>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <thread>
+#include <unordered_map>
+#include <set>
+#include <cassert>
 
 // Link the Winsock library
 #pragma comment(lib, "Ws2_32.lib")
@@ -62,6 +66,19 @@ namespace chess_client {
     PieceType promoteType;
     bool firstMove;
   };
+
+#pragma pack(push, 1)
+  struct NetworkMove {
+    Position src;
+    Position dst;
+    unsigned char capturedPiece;
+    Position castlingRookSrc;
+    Position castlingRookDst;
+    unsigned char castlingRook;
+    PieceType promoteType;
+    bool firstMove;
+  };
+#pragma pack(pop)
 
   struct Action {
     std::shared_ptr<Piece> piece;

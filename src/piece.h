@@ -32,6 +32,6 @@ namespace chess_client {
     virtual SDL_Surface* getSurface() { return m_Surface; }
     virtual void performMove(std::array<Square, 64>& board, Move& move);
     virtual std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) = 0;
-    virtual std::string getType() = 0;
+    virtual PieceType getType() = 0;
   };
 } // namespace chess_client

@@ -7,6 +7,6 @@ namespace chess_client {
   public:
     Queen(Square* square, PieceColor color);
     std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) override;
-    std::string getType() override { return std::string("Queen"); };
+    PieceType getType() override { return QUEEN; };
   };
 } // namespace chess_client

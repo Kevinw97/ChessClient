@@ -9,7 +9,6 @@
 #include "sdl_render_handler.h"
 #include "sdl_audio_handler.h"
 #include "chess.h"
-#include <set>
 
 namespace chess_client {
   class ChessGame {
@@ -17,11 +16,17 @@ namespace chess_client {
   private:
     bool m_InProgress = true;
     bool m_Running = true;
+    bool m_Online = false;
+    std::thread m_ListenerThread;
+    std::string m_ServerIp;
+    SOCKET m_ClientSocket;
+    std::vector<char> m_DataBuffer;
     RenderHandler m_RenderHandler;
     AudioHandler m_AudioHandler;
     std::array<Square, 64> m_Board;
     std::set<std::shared_ptr<Piece>> m_WhitePieces;
     std::set<std::shared_ptr<Piece>> m_BlackPieces;
+    std::unordered_map<unsigned char, std::shared_ptr<Piece>> m_Pieces;
     std::shared_ptr<Piece> m_BlackKing = nullptr;
     std::shared_ptr<Piece> m_WhiteKing = nullptr;
     PieceColor m_PlayerColor = WHITE;
@@ -31,7 +36,10 @@ namespace chess_client {
     std::vector<Action> m_ActionHistory;
 
     void setupInitialPieces(std::array<Square, 64>& board);
+    void gameSetup();
     void gameLoop();
+    void listenLoop();
+    void setupOnlineClient();
     void handleMouseClick(SDL_Event* event);
     bool isCurrentPlayersTurn();
     bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
@@ -41,7 +49,12 @@ namespace chess_client {
     void selectDestination(int x, int y);
     void unselectAllSquares();
     void undoMove();
+    void writeBoard();
+    void writeMove(const std::shared_ptr<Piece>& piece, const Move& move);
+    void sendCommand();
+    Move decodeMove(std::array<char, 512> data);
     void resetGame();
+    unsigned char getPieceKey(const std::shared_ptr<Piece>& piece);
 
   public:
     ChessGame();

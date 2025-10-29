@@ -36,8 +36,8 @@ namespace chess_client {
     }
     const int x = getSquare()->x;
     const int y = getSquare()->y;
-    int direction = getColor() == BLACK ? 1 : -1;
-    int startRow = getColor() == BLACK ? 1 : 6;
+    const int direction = getColor() == BLACK ? 1 : -1;
+    const int startRow = getColor() == BLACK ? 1 : 6;
 
     Position frontPos = { x, y + direction };
     if (isValidPosition(frontPos) && !positionIsOccupied(board, frontPos)) {
@@ -99,34 +99,8 @@ namespace chess_client {
 
     Piece::performMove(board, move);
 
-    if (!m_PromotedPiece && m_RowsAdvanced == 6) {
-      std::cout << "Pawn promotion. Choose a piece (rook, bishop, knight, queen): ";
-      std::string pieceInput;
-      PieceType selectedType = QUEEN; // Default to queen
-      while (std::getline(std::cin, pieceInput)) {
-        std::transform(pieceInput.begin(), pieceInput.end(), pieceInput.begin(), ::tolower);
-        if (pieceInput == "rook") {
-          selectedType = ROOK;
-          break;
-        }
-        else if (pieceInput == "bishop") {
-          selectedType = BISHOP;
-          break;
-        }
-        else if (pieceInput == "knight") {
-          selectedType = KNIGHT;
-          break;
-        }
-        else if (pieceInput == "queen") {
-          selectedType = QUEEN;
-          break;
-        }
-        else {
-          std::cout << "Invalid input. Choose rook, bishop, knight, or queen: ";
-        }
-      }
-      move.promoteType = selectedType;
-      promotePiece(selectedType);
+    if (move.promoteType) {
+      promotePiece(move.promoteType);
     }
   };
 
@@ -165,6 +139,10 @@ namespace chess_client {
     }
     }
     return;
+  }
+
+  bool Pawn::canPromote(const Move &move) {
+    return (getColor() == BLACK ? (move.dst.y - getInitialPosition().y == 6) : (getInitialPosition().y - move.dst.y == 6));
   }
 
   SDL_Surface* Pawn::getSurface() {

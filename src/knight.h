@@ -7,6 +7,6 @@ namespace chess_client {
   public:
     Knight(Square* square, PieceColor color);
     std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) override;
-    std::string getType() override { return std::string("Knight"); };
+    PieceType getType() override { return KNIGHT; };
   };
 } // namespace chess_client
