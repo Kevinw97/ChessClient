@@ -49,15 +49,11 @@ namespace chess_client {
     return moves;
   };
 
-  void Rook::performMove(std::array<Square, 64>& board, Move& move) {
+  void Rook::performMove(std::array<Square, 64>& board, const Move& move) {
     if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
       setSquare(getSquareAtPosition(board, move.castlingRookDst));
-      if (!hasMoved()) {
+      if (move.firstMove && !hasMoved()) {
         setMoved(true);
-        move.firstMove = true;
-      }
-      else {
-        setMoved(false);
       }
     }
     else {

@@ -51,6 +51,14 @@ namespace chess_client {
     KING
   };
 
+  enum GameStatus : unsigned char {
+    SUCCESS,
+    WAITING_FOR_PLAYER,
+    WAITING_FOR_OPPONENT,
+    ERROR_REJECTED_MOVE,
+    ERROR_BOARD_MISMATCH,
+  };
+
   struct Position {
     int x;
     int y;

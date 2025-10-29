@@ -17,6 +17,7 @@ namespace chess_client {
     bool m_InProgress = true;
     bool m_Running = true;
     bool m_Online = false;
+    GameStatus m_State;
     std::thread m_ListenerThread;
     std::string m_ServerIp;
     SOCKET m_ClientSocket;
@@ -44,7 +45,7 @@ namespace chess_client {
     bool isCurrentPlayersTurn();
     bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
     bool isKingInCheck(std::array<Square, 64>& board, PieceColor Color);
-    void processMove(const std::shared_ptr<Piece>& piece, Move& move);
+    void processMove(const std::shared_ptr<Piece>& piece, const Move& move, bool clientProcess);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);
     void unselectAllSquares();
@@ -52,9 +53,11 @@ namespace chess_client {
     void writeBoard();
     void writeMove(const std::shared_ptr<Piece>& piece, const Move& move);
     void sendCommand();
-    Move decodeMove(std::array<char, 512> data);
+    Move decodeMove(unsigned char* data);
     void resetGame();
     unsigned char getPieceKey(const std::shared_ptr<Piece>& piece);
+    std::shared_ptr<Piece> getPiece(unsigned char pieceKey);
+    bool validateBoard(unsigned char* board);
 
   public:
     ChessGame();

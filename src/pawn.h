@@ -12,12 +12,13 @@ namespace chess_client {
     void setIsAlive(bool isAlive) override;
     void setSquare(Square* square) override;
     std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) override;
-    void performMove(std::array<Square, 64>& board, Move& pos) override;
+    void performMove(std::array<Square, 64>& board, const Move& pos) override;
     SDL_Surface* getSurface() override;
     void promotePiece(PieceType type);
     bool canPromote(const Move &move);
     void undoPromote();
     void resetPiece(std::array<Square, 64>& board) override;
+    bool isPromoted();
     PieceType getType() override { return PAWN; };
   };
 } // namespace chess_client

@@ -15,14 +15,10 @@ namespace chess_client {
     }
   }
 
-  void Piece::performMove(std::array<Square, 64>& board, Move& move) {
+  void Piece::performMove(std::array<Square, 64>& board, const Move& move) {
     setSquare(getSquareAtPosition(board, move.dst));
-    if (!hasMoved()) {
+    if (move.firstMove && !hasMoved()) {
       setMoved(true);
-      move.firstMove = true;
-    }
-    else { // We are undoing a piece move, reset the flag
-      setMoved(false);
     }
   }
 

@@ -89,7 +89,7 @@ namespace chess_client {
     return moves;
   };
 
-  void Pawn::performMove(std::array<Square, 64>& board, Move& move) {
+  void Pawn::performMove(std::array<Square, 64>& board, const Move& move) {
     if (m_PromotedPiece) {
       m_PromotedPiece->performMove(board, move);
     }
@@ -106,6 +106,10 @@ namespace chess_client {
 
   void Pawn::undoPromote() {
     m_PromotedPiece.reset();
+  }
+
+  bool Pawn::isPromoted() {
+    return (m_PromotedPiece != nullptr);
   }
 
   void Pawn::promotePiece(PieceType type) {
@@ -138,11 +142,12 @@ namespace chess_client {
       throw std::runtime_error("Wrong promotion type\n");
     }
     }
+    m_PromotedPiece->setMoved(true);
     return;
   }
 
   bool Pawn::canPromote(const Move &move) {
-    return (getColor() == BLACK ? (move.dst.y - getInitialPosition().y == 6) : (getInitialPosition().y - move.dst.y == 6));
+    return (!m_PromotedPiece && getColor() == BLACK ? (move.dst.y - getInitialPosition().y == 6) : (getInitialPosition().y - move.dst.y == 6));
   }
 
   SDL_Surface* Pawn::getSurface() {

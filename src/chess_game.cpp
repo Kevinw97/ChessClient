@@ -9,7 +9,8 @@ namespace chess_client {
 
   ChessGame::ChessGame()
     : m_RenderHandler("Chess Game", BOARD_SIZE, BOARD_SIZE)
-    , m_Board{} {
+    , m_Board{}
+    , m_State(SUCCESS) {
     m_RenderHandler.generateInitialBoard(m_Board);
     setupInitialPieces(m_Board);
   }
@@ -44,12 +45,15 @@ namespace chess_client {
     for (const auto& piece : m_WhitePieces) {
       int index = posToIndex(piece->getSquare()->pos);
       m_Board[index].occupyingPiece = piece;
+      m_Pieces.emplace(getPieceKey(piece), piece);
     }
 
     for (const auto& piece : m_BlackPieces) {
       int index = posToIndex(piece->getSquare()->pos);
       m_Board[index].occupyingPiece = piece;
+      m_Pieces.emplace(getPieceKey(piece), piece);
     }
+
   }
 
   void ChessGame::gameSetup() {
@@ -112,9 +116,9 @@ namespace chess_client {
           m_InProgress = false;
         }
         if (event.key.key == SDLK_LEFT) {
-          undoMove();
-          m_RenderHandler.drawChessBoard(m_Board);
-          m_RenderHandler.drawCapturedPieces();
+          //undoMove();
+          //m_RenderHandler.drawChessBoard(m_Board);
+          //m_RenderHandler.drawCapturedPieces();
         }
         break;
       }
@@ -200,32 +204,63 @@ namespace chess_client {
       m_PlayerColor = static_cast<PieceColor>(buffer[0]);
     }
 
+    if (isCurrentPlayersTurn()) {
+      m_State = WAITING_FOR_PLAYER;
+    }
+
     m_ListenerThread = std::thread(&ChessGame::listenLoop, this);
   }
 
   void ChessGame::listenLoop() {
     while (m_Running) {  // Check running flag
       // Receive response
-      std::array<char, 512> buffer = { 0 };
+      std::array<char, 4096> buffer = { 0 };
       int bytesReceived = recv(m_ClientSocket, buffer.data(), 512, 0);
       if (bytesReceived > 0) {
         std::cout << "Received " << bytesReceived << " bytes:" << std::endl;
+        int i = 0;
+        unsigned char *response = reinterpret_cast<unsigned char*>(buffer.data());
+        if (response[i] == 0x55) {
+          i++;
 
-        // Print byte data in hexadecimal format
-        for (int i = 0; i < bytesReceived; i++) {
-          printf("%02X ", static_cast<unsigned char>(buffer[i]));
-          if ((i + 1) % 16 == 0) {  // New line every 16 bytes
-            std::cout << std::endl;
+          // Get piece
+          unsigned char pieceKey = response[i];
+          std::shared_ptr<Piece> piece = getPiece(pieceKey);
+          if (!piece) {
+            std::cerr << "No piece found\n";
+            throw std::runtime_error("No piece found\n");
           }
-        }
-        std::cout << std::endl;
-        if (!isCurrentPlayersTurn()) {
-          Move move = decodeMove(buffer);
-          if (std::shared_ptr<Piece> piece = m_Board[posToIndex(move.src)].occupyingPiece) {
-            processMove(piece, move);
-            m_RenderHandler.drawChessBoard(m_Board);
-            m_RenderHandler.drawCapturedPieces();
+          i++;
+
+          // Get and decode network move
+          if (i + sizeof(NetworkMove) > bytesReceived) {
+            std::cerr << "Didn't receive entire network move\n";
+            throw std::runtime_error("Didn't receive entire network move, partial read or something else?\n");
           }
+          Move move = decodeMove(&response[i]);
+          i += sizeof(NetworkMove);
+
+          // Process the move, and validate that the board matches the state sent by server
+          processMove(piece, move, true);
+
+          if (i + 64 > bytesReceived) {
+            std::cerr << "Didn't receive entire board\n";
+            throw std::runtime_error("Didn't receive entire board, partial read or something else?\n");
+          }
+          if (!validateBoard(&response[i])) {
+            m_State = ERROR_BOARD_MISMATCH;
+            return;
+          }
+          i += 64;
+
+          if (i + 1 > bytesReceived) {
+            std::cerr << "Didn't receive turn\n";
+            throw std::runtime_error("Didn't receive turn\n");
+          }
+          m_CurrentTurnColor = static_cast<PieceColor>(response[i]);
+          m_State = SUCCESS;
+          m_RenderHandler.drawChessBoard(m_Board);
+          m_RenderHandler.drawCapturedPieces();
         }
       }
       else if (bytesReceived == 0) {
@@ -291,7 +326,7 @@ namespace chess_client {
       [&](Move& move) { return move.dst.x == x && move.dst.y == y; });
     if (selectedValidMove != m_MovesForSelected.end()) {
       auto pawn = std::dynamic_pointer_cast<Pawn>(m_SelectedSquare->occupyingPiece);
-      if (pawn && pawn->canPromote(*selectedValidMove)) {
+      if (pawn && !pawn->isPromoted() && pawn->canPromote(*selectedValidMove)) {
         std::cout << "Pawn promotion. Choose a piece (rook, bishop, knight, queen): ";
         std::string pieceInput;
         PieceType selectedType = QUEEN; // Default to queen
@@ -319,16 +354,53 @@ namespace chess_client {
         }
         selectedValidMove->promoteType = selectedType;
       }
-      processMove(m_SelectedSquare->occupyingPiece, *selectedValidMove);
+      if (m_Online) {
+        processMove(m_SelectedSquare->occupyingPiece, *selectedValidMove, false);
+      }
+      else {
+        processMove(m_SelectedSquare->occupyingPiece, *selectedValidMove, true);
+      }
     }
     unselectAllSquares();
     
     return;
   }
 
-  void ChessGame::processMove(const std::shared_ptr<Piece>& piece, Move& move) {
+  void ChessGame::processMove(const std::shared_ptr<Piece>& piece, const Move& move, bool clientProcess) {
     // This assumes that the move is already validated and generates the next state
     // and also checks if the next state would put the player in checkmate.
+    LOG_PRINTF("Process move called, clientprocess is %x\n", clientProcess);
+
+    // Send move to server and validate first
+    if (m_Online && clientProcess == false) {
+      m_DataBuffer.clear();
+      m_DataBuffer.push_back(0x55);
+      for (Square &square : m_Board) {
+        if (square.occupyingPiece) {
+          m_DataBuffer.push_back(getPieceKey(square.occupyingPiece));
+        }
+        else {
+          m_DataBuffer.push_back(0);
+        }
+      }
+      writeMove(piece, move);
+      sendCommand();
+      while (m_State != SUCCESS) {
+        LOG_COUT("Looping..");
+        if (m_State == ERROR_BOARD_MISMATCH || m_State == ERROR_REJECTED_MOVE) {
+          std::cerr << "Server and client board don't match\n";
+          throw std::runtime_error("Server and client board don't match\n");
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      }
+      if (isCurrentPlayersTurn()) {
+        m_State = WAITING_FOR_PLAYER;
+      }
+      else {
+        m_State = WAITING_FOR_OPPONENT;
+      }
+      return;
+    }
 
     Square* srcSquare = piece->getSquare();
     Square* dstSquare = getSquareAtPosition(m_Board, move.dst);
@@ -358,10 +430,10 @@ namespace chess_client {
       rookDstSquare->occupyingPiece = std::move(rookSrcSquare->occupyingPiece);
     }
 
-    if (!m_Online) {
-      // Push performed action to stack
-      m_ActionHistory.push_back({ dstSquare->occupyingPiece, move });
-    }
+
+    // Push performed action to stack
+    m_ActionHistory.push_back({ dstSquare->occupyingPiece, move });
+
 
     // Check if current color is in checkmate
     bool currentColorCheckmate = true;
@@ -387,18 +459,11 @@ namespace chess_client {
       }
     }
 
-    if (m_Online && isCurrentPlayersTurn()) {
-      writeMove(piece, move);
-      sendCommand();
-    }
-
     if (!m_Online) {
-      // Swap player color for single player testing
+      // Swap player color for single player, otherwise turn is decided by network response
       m_PlayerColor = m_PlayerColor == BLACK ? WHITE : BLACK;
+      m_CurrentTurnColor = m_CurrentTurnColor == BLACK ? WHITE : BLACK;
     }
-
-    // Switch turn
-    m_CurrentTurnColor = m_CurrentTurnColor == BLACK ? WHITE : BLACK;
 
     if (move.capturedPiece) {
       m_AudioHandler.playCaptureSound();
@@ -544,6 +609,7 @@ namespace chess_client {
     networkMove.firstMove = move.firstMove;
 
     const unsigned char* moveBytes = reinterpret_cast<const unsigned char*>(&networkMove);
+    m_DataBuffer.push_back(getPieceKey(piece));
     m_DataBuffer.insert(m_DataBuffer.end(), moveBytes, moveBytes + sizeof(NetworkMove));
   }
 
@@ -552,13 +618,8 @@ namespace chess_client {
     m_DataBuffer.clear();
   }
   
-  Move ChessGame::decodeMove(std::array<char, 512> data) {
-    for (int i = 0; i < 64; i++) {
-      // Do some validation with the board
-    }
-
-    // Cast the data starting at position 128 to a NetworkMove pointer
-    const NetworkMove* networkMove = reinterpret_cast<const NetworkMove*>(&data[128]);
+  Move ChessGame::decodeMove(unsigned char* data) {
+    const NetworkMove* networkMove = reinterpret_cast<const NetworkMove*>(data);
 
     // Decode into a Move struct
     Move move;
@@ -588,6 +649,23 @@ namespace chess_client {
       return static_cast<unsigned char>(piece->getInitialPosition().x) << 4 | static_cast<unsigned char>(piece->getInitialPosition().y) | 0x80;
     }
     return 0;
+  }
+
+  std::shared_ptr<Piece> ChessGame::getPiece(unsigned char pieceKey) {
+    if (m_Pieces.find(pieceKey) != m_Pieces.end()) {
+      return m_Pieces[pieceKey];
+    }
+    return nullptr;
+  }
+
+  bool ChessGame::validateBoard(unsigned char* data) {
+    for (int i = 0; i < 64; i++) {
+      unsigned char boardVal = m_Board[i].occupyingPiece ? getPieceKey(m_Board[i].occupyingPiece) : 0;
+      if (boardVal != static_cast<unsigned char>(data[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void ChessGame::resetGame() {
