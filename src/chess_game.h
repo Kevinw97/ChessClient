@@ -45,7 +45,8 @@ namespace chess_client {
     bool isCurrentPlayersTurn();
     bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
     bool isKingInCheck(std::array<Square, 64>& board, PieceColor Color);
-    void processMove(const std::shared_ptr<Piece>& piece, const Move& move, bool clientProcess);
+    void processMove(const std::shared_ptr<Piece>& piece, const Move& move);
+    void sendMove(const std::shared_ptr<Piece>& piece, const Move& move);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);
     void unselectAllSquares();
@@ -58,6 +59,7 @@ namespace chess_client {
     unsigned char getPieceKey(const std::shared_ptr<Piece>& piece);
     std::shared_ptr<Piece> getPiece(unsigned char pieceKey);
     bool validateBoard(unsigned char* board);
+    void choosePawnPromotion(const std::shared_ptr<Piece>& piece, Move& move);
 
   public:
     ChessGame();

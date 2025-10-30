@@ -9,8 +9,8 @@ namespace chess_client {
 
   ChessGame::ChessGame()
     : m_RenderHandler("Chess Game", BOARD_SIZE, BOARD_SIZE)
-    , m_Board{}
-    , m_State(SUCCESS) {
+    , m_Board{} 
+    , m_ClientSocket(INVALID_SOCKET) {
     m_RenderHandler.generateInitialBoard(m_Board);
     setupInitialPieces(m_Board);
   }
@@ -66,7 +66,7 @@ namespace chess_client {
         return;
       }
       else if (userInput == "m") {
-        m_Online = true;;
+        m_Online = true;
         break;
       }
       else {
@@ -96,9 +96,13 @@ namespace chess_client {
         m_Running = false;
         if (m_Online) {
           // Cleanup connection
-          closesocket(m_ClientSocket);
-          WSACleanup();
-          m_ListenerThread.join();
+          if (m_ClientSocket != INVALID_SOCKET) {
+            closesocket(m_ClientSocket);
+            WSACleanup();
+          }
+          if (m_ListenerThread.joinable()) {
+            m_ListenerThread.join();
+          }
         }
         return;
       }
@@ -107,8 +111,6 @@ namespace chess_client {
           break;
         }
         handleMouseClick(&event);
-        m_RenderHandler.drawChessBoard(m_Board);
-        m_RenderHandler.drawCapturedPieces();
         break;
       }
       case SDL_EVENT_KEY_UP: {
@@ -142,19 +144,9 @@ namespace chess_client {
         gameLoop();
       }
       else {
-        LOG_COUT("Press enter to reset game...");
-        std::cin;
-        LOG_PRINTF("Resetting game in 5 seconds\n");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        LOG_PRINTF("Resetting game in 4 seconds\n");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        LOG_PRINTF("Resetting game in 3 seconds\n");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        LOG_PRINTF("Resetting game in 2 seconds\n");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        LOG_PRINTF("Resetting game in 1 seconds\n");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        resetGame();
+        if (!m_Online) {
+          resetGame();
+        }
       }
     }
   }
@@ -221,9 +213,14 @@ namespace chess_client {
         int i = 0;
         unsigned char *response = reinterpret_cast<unsigned char*>(buffer.data());
         if (response[i] == 0x55) {
+          LOG_COUT("SDKLMFKDLSFMDF");
           i++;
 
           // Get piece
+          if (i + 1 > bytesReceived) {
+            std::cerr << "Didn't receive the piece\n";
+            throw std::runtime_error("Didn't receive the piece\n");
+          }
           unsigned char pieceKey = response[i];
           std::shared_ptr<Piece> piece = getPiece(pieceKey);
           if (!piece) {
@@ -241,15 +238,15 @@ namespace chess_client {
           i += sizeof(NetworkMove);
 
           // Process the move, and validate that the board matches the state sent by server
-          processMove(piece, move, true);
+          processMove(piece, move);
 
           if (i + 64 > bytesReceived) {
             std::cerr << "Didn't receive entire board\n";
             throw std::runtime_error("Didn't receive entire board, partial read or something else?\n");
           }
           if (!validateBoard(&response[i])) {
-            m_State = ERROR_BOARD_MISMATCH;
-            return;
+            std::cerr << "Board doesn't match\n";
+            throw std::runtime_error("Board doesn't match\n");
           }
           i += 64;
 
@@ -258,9 +255,6 @@ namespace chess_client {
             throw std::runtime_error("Didn't receive turn\n");
           }
           m_CurrentTurnColor = static_cast<PieceColor>(response[i]);
-          m_State = SUCCESS;
-          m_RenderHandler.drawChessBoard(m_Board);
-          m_RenderHandler.drawCapturedPieces();
         }
       }
       else if (bytesReceived == 0) {
@@ -317,90 +311,80 @@ namespace chess_client {
       targetSquare->isHighlighted = true;
       m_MovesForSelected.push_back(move);
     }
+
+    m_RenderHandler.drawChessBoard(m_Board);
+    m_RenderHandler.drawCapturedPieces();
   }
 
   void ChessGame::selectDestination(int x, int y) {
     // Deselect piece after move attempt
-    auto selectedValidMove = std::find_if(
-      m_MovesForSelected.begin(), m_MovesForSelected.end(),
-      [&](Move& move) { return move.dst.x == x && move.dst.y == y; });
-    if (selectedValidMove != m_MovesForSelected.end()) {
-      auto pawn = std::dynamic_pointer_cast<Pawn>(m_SelectedSquare->occupyingPiece);
-      if (pawn && !pawn->isPromoted() && pawn->canPromote(*selectedValidMove)) {
-        std::cout << "Pawn promotion. Choose a piece (rook, bishop, knight, queen): ";
-        std::string pieceInput;
-        PieceType selectedType = QUEEN; // Default to queen
-        while (std::getline(std::cin, pieceInput)) {
-          std::transform(pieceInput.begin(), pieceInput.end(), pieceInput.begin(), ::tolower);
-          if (pieceInput == "rook") {
-            selectedType = ROOK;
-            break;
-          }
-          else if (pieceInput == "bishop") {
-            selectedType = BISHOP;
-            break;
-          }
-          else if (pieceInput == "knight") {
-            selectedType = KNIGHT;
-            break;
-          }
-          else if (pieceInput == "queen") {
-            selectedType = QUEEN;
-            break;
-          }
-          else {
-            std::cout << "Invalid input. Choose rook, bishop, knight, or queen: ";
-          }
-        }
-        selectedValidMove->promoteType = selectedType;
-      }
-      if (m_Online) {
-        processMove(m_SelectedSquare->occupyingPiece, *selectedValidMove, false);
-      }
-      else {
-        processMove(m_SelectedSquare->occupyingPiece, *selectedValidMove, true);
-      }
+    if (!m_SelectedSquare || !m_SelectedSquare->occupyingPiece) {
+      return;
     }
+
+    auto selectedValidMove = std::find_if(m_MovesForSelected.begin(), m_MovesForSelected.end(),
+      [&](Move& move) { return move.dst.x == x && move.dst.y == y; });
+
+    if (selectedValidMove == m_MovesForSelected.end()) {
+      unselectAllSquares();
+      m_RenderHandler.drawChessBoard(m_Board);
+      m_RenderHandler.drawCapturedPieces();
+      return;
+    }
+
+    Move move = *selectedValidMove;
+    std::shared_ptr<Piece> piece = m_SelectedSquare->occupyingPiece;
     unselectAllSquares();
-    
+
+    // If move results in promotion, prompt for choice
+    choosePawnPromotion(piece, move);
+
+    if (m_Online) {
+      sendMove(piece, move);
+    }
+    else {
+      processMove(piece, move);
+    }
+
     return;
   }
 
-  void ChessGame::processMove(const std::shared_ptr<Piece>& piece, const Move& move, bool clientProcess) {
-    // This assumes that the move is already validated and generates the next state
-    // and also checks if the next state would put the player in checkmate.
-    LOG_PRINTF("Process move called, clientprocess is %x\n", clientProcess);
-
-    // Send move to server and validate first
-    if (m_Online && clientProcess == false) {
-      m_DataBuffer.clear();
-      m_DataBuffer.push_back(0x55);
-      for (Square &square : m_Board) {
-        if (square.occupyingPiece) {
-          m_DataBuffer.push_back(getPieceKey(square.occupyingPiece));
+  void ChessGame::choosePawnPromotion(const std::shared_ptr<Piece>& piece, Move& move) {
+    auto pawn = std::dynamic_pointer_cast<Pawn>(piece);
+    if (pawn && !pawn->isPromoted() && pawn->canPromote(move)) {
+      std::cout << "Pawn promotion. Choose a piece (rook, bishop, knight, queen): ";
+      std::string pieceInput;
+      PieceType selectedType = QUEEN; // Default to queen
+      while (std::getline(std::cin, pieceInput)) {
+        std::transform(pieceInput.begin(), pieceInput.end(), pieceInput.begin(), ::tolower);
+        if (pieceInput == "rook") {
+          selectedType = ROOK;
+          break;
+        }
+        else if (pieceInput == "bishop") {
+          selectedType = BISHOP;
+          break;
+        }
+        else if (pieceInput == "knight") {
+          selectedType = KNIGHT;
+          break;
+        }
+        else if (pieceInput == "queen") {
+          selectedType = QUEEN;
+          break;
         }
         else {
-          m_DataBuffer.push_back(0);
+          std::cout << "Invalid input. Choose rook, bishop, knight, or queen: ";
         }
       }
-      writeMove(piece, move);
-      sendCommand();
-      while (m_State != SUCCESS) {
-        LOG_COUT("Looping..");
-        if (m_State == ERROR_BOARD_MISMATCH || m_State == ERROR_REJECTED_MOVE) {
-          std::cerr << "Server and client board don't match\n";
-          throw std::runtime_error("Server and client board don't match\n");
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-      }
-      if (isCurrentPlayersTurn()) {
-        m_State = WAITING_FOR_PLAYER;
-      }
-      else {
-        m_State = WAITING_FOR_OPPONENT;
-      }
-      return;
+      move.promoteType = selectedType;
     }
+  }
+
+  void ChessGame::processMove(const std::shared_ptr<Piece>& piece, const Move& move) {
+    // This assumes that the move is already validated and generates the next state
+    // and also checks if the next state would put the player in checkmate.
+    LOG_PRINTF("Process move called\n");
 
     Square* srcSquare = piece->getSquare();
     Square* dstSquare = getSquareAtPosition(m_Board, move.dst);
@@ -430,30 +414,29 @@ namespace chess_client {
       rookDstSquare->occupyingPiece = std::move(rookSrcSquare->occupyingPiece);
     }
 
-
     // Push performed action to stack
     m_ActionHistory.push_back({ dstSquare->occupyingPiece, move });
 
-
     // Check if current color is in checkmate
-    bool currentColorCheckmate = true;
-    for (const std::shared_ptr<Piece> &piece : m_CurrentTurnColor == BLACK ? m_BlackPieces : m_WhitePieces) {
+    bool opponentCheckmated = true;
+    PieceColor opponentColor = m_CurrentTurnColor == BLACK ? WHITE : BLACK;
+    for (const std::shared_ptr<Piece> &piece : opponentColor == BLACK ? m_BlackPieces : m_WhitePieces) {
       std::vector<Move> possibleMoves = piece->getPossibleMoves(m_Board, m_ActionHistory);
       for (const Move& move : possibleMoves) {
         if (isValidMove(piece, move)) {
-          currentColorCheckmate = false;
+          opponentCheckmated = false;
           goto CHECKMATE_CHECK_EXIT;
         };
       }
     }
 
-  CHECKMATE_CHECK_EXIT:
-    if (currentColorCheckmate) {
-      if (m_CurrentTurnColor == BLACK) {
+CHECKMATE_CHECK_EXIT:
+    if (opponentCheckmated) {
+      if (opponentColor == BLACK) {
         MessageBox(NULL, L"Black has been checkmated.", L"Chess", MB_OK | MB_ICONINFORMATION);
         m_InProgress = false;
       }
-      if (m_CurrentTurnColor == WHITE) {
+      if (opponentColor == WHITE) {
         MessageBox(NULL, L"White has been checkmated.", L"Chess", MB_OK | MB_ICONINFORMATION);
         m_InProgress = false;
       }
@@ -471,6 +454,25 @@ namespace chess_client {
     else {
       m_AudioHandler.playMoveSound();
     }
+
+    m_RenderHandler.drawChessBoard(m_Board);
+    m_RenderHandler.drawCapturedPieces();
+  }
+
+  void ChessGame::sendMove(const std::shared_ptr<Piece>& piece, const Move& move) {
+    // Send move to server and validate
+    m_DataBuffer.clear();
+    m_DataBuffer.push_back(0x55);
+    for (Square& square : m_Board) {
+      if (square.occupyingPiece) {
+        m_DataBuffer.push_back(getPieceKey(square.occupyingPiece));
+      }
+      else {
+        m_DataBuffer.push_back(0);
+      }
+    }
+    writeMove(piece, move);
+    sendCommand();
   }
 
   bool ChessGame::isValidMove(const std::shared_ptr<Piece>& piece, const Move& move) {
@@ -492,7 +494,7 @@ namespace chess_client {
       boardCopy[posToIndex(move.castlingRookDst)].occupyingPiece = std::move(rookSquareCopy->occupyingPiece);
     }
 
-    bool isValidMove = !isKingInCheck(boardCopy, m_CurrentTurnColor);
+    bool isValidMove = !isKingInCheck(boardCopy, piece->getColor());
 
     if (move.capturedPiece) {
       move.capturedPiece->setIsAlive(true);
@@ -501,10 +503,10 @@ namespace chess_client {
     return isValidMove;
   }
 
-  bool ChessGame::isKingInCheck(std::array<Square, 64>& board, PieceColor Color) {
+  bool ChessGame::isKingInCheck(std::array<Square, 64>& board, PieceColor color) {
 
-    const std::set<std::shared_ptr<Piece>>& opponentsPieces = Color == WHITE ? m_BlackPieces : m_WhitePieces;
-    const std::shared_ptr<Piece>& myKing = Color == WHITE ? m_WhiteKing : m_BlackKing;
+    const std::set<std::shared_ptr<Piece>>& opponentsPieces = color == WHITE ? m_BlackPieces : m_WhitePieces;
+    const std::shared_ptr<Piece>& myKing = color == WHITE ? m_WhiteKing : m_BlackKing;
 
     for (const auto& opponentPiece : opponentsPieces) {
       std::vector<Move> possibleMoves = opponentPiece->getPossibleMoves(board, m_ActionHistory);

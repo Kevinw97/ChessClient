@@ -81,6 +81,7 @@ namespace chess_client {
 
     drawCapturedPieces();
 
+    LOG_COUT("Render present called");
     SDL_RenderPresent(m_Renderer);
   }
 
@@ -153,10 +154,10 @@ namespace chess_client {
   Position RenderHandler::mouseToPosition(SDL_Event* event) {
     int mouseX = static_cast<int>(event->button.x);
     int mouseY = static_cast<int>(event->button.y);
-    LOG_PRINTF("Mouse clicked at: (%d, %d)\n", mouseX, mouseY);
+    //LOG_PRINTF("Mouse clicked at: (%d, %d)\n", mouseX, mouseY);
     int posX = (mouseX - SQUARE_SIZE) / SQUARE_SIZE;
     int posY = (mouseY) / SQUARE_SIZE;
-    LOG_PRINTF("Returning pos: (%d, %d)\n", posX, posY);
+    //LOG_PRINTF("Returning pos: (%d, %d)\n", posX, posY);
     return { posX, posY };
   }
 } // namespace chess_client
