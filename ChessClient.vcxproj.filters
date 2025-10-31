@@ -48,6 +48,9 @@
     <ClCompile Include="src\sdl_audio_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\chess_client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\b_bishop.png">
@@ -119,6 +122,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\sdl_audio_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chess_client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

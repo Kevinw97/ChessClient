@@ -7,6 +7,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <thread>
+#include <functional>
 #include <unordered_map>
 #include <set>
 #include <cassert>
@@ -32,6 +33,7 @@
 namespace chess_client {
 
   const int BOARD_SIZE = 960;
+  const int NUM_SQUARES = 64;
   const int SQUARE_SIZE = BOARD_SIZE / 8;
 
   class Piece;
@@ -49,14 +51,6 @@ namespace chess_client {
     BISHOP,
     QUEEN,
     KING
-  };
-
-  enum GameStatus : unsigned char {
-    SUCCESS,
-    WAITING_FOR_PLAYER,
-    WAITING_FOR_OPPONENT,
-    ERROR_REJECTED_MOVE,
-    ERROR_BOARD_MISMATCH,
   };
 
   struct Position {
@@ -127,11 +121,11 @@ namespace chess_client {
     return pos.y * 8 + pos.x;
   }
 
-  inline bool positionIsOccupied(const std::array<Square, 64>& board, const Position& pos) {
+  inline bool positionIsOccupied(const std::array<Square, NUM_SQUARES>& board, const Position& pos) {
     return board[posToIndex(pos)].occupyingPiece != nullptr;
   }
 
-  inline Square* getSquareAtPosition(std::array<Square, 64>& board, const Position& pos) {
+  inline Square* getSquareAtPosition(std::array<Square, NUM_SQUARES>& board, const Position& pos) {
     int index = posToIndex(pos);
     if (index == -1) {
       return nullptr;

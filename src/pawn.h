@@ -11,13 +11,13 @@ namespace chess_client {
     Pawn(Square* square, PieceColor color);
     void setIsAlive(bool isAlive) override;
     void setSquare(Square* square) override;
-    std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) override;
-    void performMove(std::array<Square, 64>& board, const Move& pos) override;
+    std::vector<Move> getPossibleMoves(const std::array<Square, NUM_SQUARES>& board, const std::vector<Action>& actionHistory) override;
+    void performMove(std::array<Square, NUM_SQUARES>& board, const Move& pos) override;
     SDL_Surface* getSurface() override;
     void promotePiece(PieceType type);
     bool canPromote(const Move &move);
     void undoPromote();
-    void resetPiece(std::array<Square, 64>& board) override;
+    void resetPiece(std::array<Square, NUM_SQUARES>& board) override;
     bool isPromoted();
     PieceType getType() override { return PAWN; };
   };

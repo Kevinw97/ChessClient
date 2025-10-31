@@ -19,7 +19,7 @@ namespace chess_client {
          3: -1 0
 
   */
-  std::vector<Move> Rook::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
+  std::vector<Move> Rook::getPossibleMoves(const std::array<Square, NUM_SQUARES>& board, const std::vector<Action>& actionHistory) {
     std::vector<Move> moves;
     if (!isAlive()) {
       return moves;
@@ -49,7 +49,7 @@ namespace chess_client {
     return moves;
   };
 
-  void Rook::performMove(std::array<Square, 64>& board, const Move& move) {
+  void Rook::performMove(std::array<Square, NUM_SQUARES>& board, const Move& move) {
     if (move.castlingRook && isValidPosition(move.castlingRookDst)) {
       setSquare(getSquareAtPosition(board, move.castlingRookDst));
       if (move.firstMove && !hasMoved()) {

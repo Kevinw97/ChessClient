@@ -9,22 +9,16 @@
 #include "sdl_render_handler.h"
 #include "sdl_audio_handler.h"
 #include "chess.h"
+#include "chess_client.h"
 
 namespace chess_client {
   class ChessGame {
-
   private:
     bool m_InProgress = true;
     bool m_Running = true;
-    bool m_Online = false;
-    GameStatus m_State;
-    std::thread m_ListenerThread;
-    std::string m_ServerIp;
-    SOCKET m_ClientSocket;
-    std::vector<char> m_DataBuffer;
+    std::array<Square, NUM_SQUARES> m_Board;
     RenderHandler m_RenderHandler;
     AudioHandler m_AudioHandler;
-    std::array<Square, 64> m_Board;
     std::set<std::shared_ptr<Piece>> m_WhitePieces;
     std::set<std::shared_ptr<Piece>> m_BlackPieces;
     std::unordered_map<unsigned char, std::shared_ptr<Piece>> m_Pieces;
@@ -36,34 +30,39 @@ namespace chess_client {
     std::vector<Move> m_MovesForSelected;
     std::vector<Action> m_ActionHistory;
 
-    void setupInitialPieces(std::array<Square, 64>& board);
+    bool m_IsOnline = false;
+    ChessClient m_ChessClient;
+
+    void setupInitialPieces(std::array<Square, NUM_SQUARES>& board);
     void gameSetup();
     void gameLoop();
     void listenLoop();
-    void setupOnlineClient();
     void handleMouseClick(SDL_Event* event);
     bool isCurrentPlayersTurn();
     bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
-    bool isKingInCheck(std::array<Square, 64>& board, PieceColor Color);
+    bool isKingInCheck(std::array<Square, NUM_SQUARES>& board, PieceColor Color);
     void processMove(const std::shared_ptr<Piece>& piece, const Move& move);
-    void sendMove(const std::shared_ptr<Piece>& piece, const Move& move);
+    void clientMoveHandler(
+      unsigned char pieceKey,
+      NetworkMove networkMove,
+      std::array<unsigned char, NUM_SQUARES> serializedBoard,
+      PieceColor turnColor);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);
     void unselectAllSquares();
     void undoMove();
-    void writeBoard();
-    void writeMove(const std::shared_ptr<Piece>& piece, const Move& move);
-    void sendCommand();
-    Move decodeMove(unsigned char* data);
+    Move decodeMove(NetworkMove data);
     void resetGame();
-    unsigned char getPieceKey(const std::shared_ptr<Piece>& piece);
     std::shared_ptr<Piece> getPiece(unsigned char pieceKey);
-    bool validateBoard(unsigned char* board);
+    bool validateBoard(std::array<unsigned char, NUM_SQUARES> board);
     void choosePawnPromotion(const std::shared_ptr<Piece>& piece, Move& move);
+    std::array<unsigned char, NUM_SQUARES> serializeBoard();
 
   public:
     ChessGame();
     void run();
+
+    friend class ChessClient;
   };
 
 } // namespace chess_client

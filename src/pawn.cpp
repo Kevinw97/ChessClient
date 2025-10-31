@@ -25,7 +25,7 @@ namespace chess_client {
     Piece::setSquare(square);
   };
 
-  std::vector<Move> Pawn::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
+  std::vector<Move> Pawn::getPossibleMoves(const std::array<Square, NUM_SQUARES>& board, const std::vector<Action>& actionHistory) {
     if (m_PromotedPiece) {
       return m_PromotedPiece->getPossibleMoves(board, actionHistory);
     }
@@ -89,7 +89,7 @@ namespace chess_client {
     return moves;
   };
 
-  void Pawn::performMove(std::array<Square, 64>& board, const Move& move) {
+  void Pawn::performMove(std::array<Square, NUM_SQUARES>& board, const Move& move) {
     if (m_PromotedPiece) {
       m_PromotedPiece->performMove(board, move);
     }
@@ -159,7 +159,7 @@ namespace chess_client {
     }
   };
 
-  void Pawn::resetPiece(std::array<Square, 64>& board) {
+  void Pawn::resetPiece(std::array<Square, NUM_SQUARES>& board) {
     m_PromotedPiece.reset();
     Piece::resetPiece(board);
   };

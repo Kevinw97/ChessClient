@@ -17,7 +17,7 @@ namespace chess_client {
             3: - +
   */
   std::vector<Move>
-    Bishop::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
+    Bishop::getPossibleMoves(const std::array<Square, NUM_SQUARES>& board, const std::vector<Action>& actionHistory) {
 
     std::vector<Move> moves;
     if (!isAlive()) {

@@ -15,7 +15,7 @@ namespace chess_client {
     }
   }
 
-  void Piece::performMove(std::array<Square, 64>& board, const Move& move) {
+  void Piece::performMove(std::array<Square, NUM_SQUARES>& board, const Move& move) {
     setSquare(getSquareAtPosition(board, move.dst));
     if (move.firstMove && !hasMoved()) {
       setMoved(true);
@@ -26,10 +26,16 @@ namespace chess_client {
     return piece->getColor() != getColor();
   }
 
-  void Piece::resetPiece(std::array<Square, 64>& board) {
+  void Piece::resetPiece(std::array<Square, NUM_SQUARES>& board) {
     Square* square = getSquareAtPosition(board, m_InitialPosition);
     setSquare(square);
     setIsAlive(true);
     setMoved(false);
   }
+
+  unsigned char Piece::getPieceKey() {
+    return static_cast<unsigned char>(getInitialPosition().x) << 4 | 
+          static_cast<unsigned char>(getInitialPosition().y) | 
+          0x80;
+  };
 } // namespace chess_client

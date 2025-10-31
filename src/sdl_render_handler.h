@@ -32,13 +32,13 @@ namespace chess_client {
   public:
     RenderHandler(const char* title, int width, int height);
     bool init();
-    void drawChessBoard(const std::array<Square, 64>& board);
+    void drawChessBoard(const std::array<Square, NUM_SQUARES>& board);
     void capturePiece(const std::shared_ptr<Piece>& piece);
     void undoCapture(PieceColor color);
     void drawCapturedPieces();
     void clearCapturedPieces();
     SDL_FRect getNextCaptureContainer(PieceColor color);
-    void generateInitialBoard(std::array<Square, 64>& board);
+    void generateInitialBoard(std::array<Square, NUM_SQUARES>& board);
     void unselectAllSquares();
     float getPadding(const Square& square) const { return 0.10f * square.rect.w; }
     Position mouseToPosition(SDL_Event* event);

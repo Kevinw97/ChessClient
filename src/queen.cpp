@@ -6,7 +6,7 @@ namespace chess_client {
   };
 
   // Queen literally moves like how a bishop + rook move
-  std::vector<Move> Queen::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
+  std::vector<Move> Queen::getPossibleMoves(const std::array<Square, NUM_SQUARES>& board, const std::vector<Action>& actionHistory) {
     std::vector<Move> moves;
     if (!isAlive()) {
       return moves;

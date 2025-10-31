@@ -11,7 +11,7 @@ namespace chess_client {
       7 K 3
       6 5 4
   */
-  std::vector<Move> King::getPossibleMoves(const std::array<Square, 64> &board, const std::vector<Action> &actionHistory) {
+  std::vector<Move> King::getPossibleMoves(const std::array<Square, NUM_SQUARES> &board, const std::vector<Action> &actionHistory) {
     std::vector<Move> moves;
     if (!isAlive()) {
       return moves;

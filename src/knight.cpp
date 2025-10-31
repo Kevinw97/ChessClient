@@ -12,7 +12,7 @@ namespace chess_client {
       6 _ _ _ 3
       _ 5 _ 4 _
   */
-  std::vector<Move> Knight::getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) {
+  std::vector<Move> Knight::getPossibleMoves(const std::array<Square, NUM_SQUARES>& board, const std::vector<Action>& actionHistory) {
     std::vector<Move> moves;
     if (!isAlive()) {
       return moves;

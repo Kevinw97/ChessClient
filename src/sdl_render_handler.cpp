@@ -22,7 +22,7 @@ namespace chess_client {
     return 0;
   };
 
-  void RenderHandler::generateInitialBoard(std::array<Square, 64>& board) {
+  void RenderHandler::generateInitialBoard(std::array<Square, NUM_SQUARES>& board) {
     for (int y = 0; y < 8; y++) {
       for (int x = 0; x < 8; x++) {
         int i = posToIndex({ x, y });
@@ -47,7 +47,7 @@ namespace chess_client {
     }
   }
 
-  void RenderHandler::drawChessBoard(const std::array<Square, 64>& board) {
+  void RenderHandler::drawChessBoard(const std::array<Square, NUM_SQUARES>& board) {
     // Set canvas to black
     SDL_SetRenderDrawColor(m_Renderer, 0, 0, 0, 255);
     SDL_RenderClear(m_Renderer);

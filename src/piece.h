@@ -27,11 +27,12 @@ namespace chess_client {
     Square* getSquare() { return m_Square; };
     bool hasMoved() { return m_HasMoved; };
     void setMoved(bool val) { m_HasMoved = val; }
-    virtual void resetPiece(std::array<Square, 64>& board);
+    virtual void resetPiece(std::array<Square, NUM_SQUARES>& board);
     virtual void setSquare(Square* square) { m_Square = square; };
     virtual SDL_Surface* getSurface() { return m_Surface; }
-    virtual void performMove(std::array<Square, 64>& board, const Move& move);
-    virtual std::vector<Move> getPossibleMoves(const std::array<Square, 64>& board, const std::vector<Action>& actionHistory) = 0;
+    virtual void performMove(std::array<Square, NUM_SQUARES>& board, const Move& move);
+    virtual std::vector<Move> getPossibleMoves(const std::array<Square, NUM_SQUARES>& board, const std::vector<Action>& actionHistory) = 0;
     virtual PieceType getType() = 0;
+    unsigned char getPieceKey();
   };
 } // namespace chess_client
