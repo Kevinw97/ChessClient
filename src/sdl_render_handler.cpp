@@ -3,7 +3,7 @@
 #include <thread>
 
 namespace chess_client {
-  RenderHandler::RenderHandler(const char* title, int width, int height)
+  RenderHandler::RenderHandler(const char* title)
     : m_Window(nullptr)
     , m_Renderer(nullptr)
     , m_Title(title) {};
@@ -18,6 +18,8 @@ namespace chess_client {
       0,
       &m_Window,
       &m_Renderer);
+    m_Width = BOARD_SIZE + CAPTURED_CONTAINER_SIZE * 4;
+    m_Height = BOARD_SIZE;
     SDL_RenderPresent(m_Renderer);
     return 0;
   };
@@ -45,6 +47,45 @@ namespace chess_client {
         board[i].isHighlighted = false;
       }
     }
+  }
+  void RenderHandler::rotateBoard(std::array<Square, NUM_SQUARES>& board) {
+    if (!m_Rotated) {
+      // Rotating to black player POV - only flip coordinates of square
+      for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 8; x++) {
+          int i = posToIndex({ x, y });
+
+          // Flip visual coordinates: (x, y) -> (7-x, 7-y) for rendering
+          int visualX = 7 - x;
+          int visualY = 7 - y;
+
+          board[i].rect.x = static_cast<float>(visualX * SQUARE_SIZE + SQUARE_SIZE);
+          board[i].rect.y = static_cast<float>(visualY * SQUARE_SIZE);
+
+          float padding = getPadding(board[i]);
+
+          board[i].innerRect.x = static_cast<float>(visualX * SQUARE_SIZE + padding + SQUARE_SIZE);
+          board[i].innerRect.y = static_cast<float>(visualY * SQUARE_SIZE + padding);
+        }
+      }
+    }
+    else {
+      // Rotating back to white's POV
+      for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 8; x++) {
+          int i = posToIndex({ x, y });
+
+          board[i].rect.x = static_cast<float>(x * SQUARE_SIZE + SQUARE_SIZE);
+          board[i].rect.y = static_cast<float>(y * SQUARE_SIZE);
+
+          float padding = getPadding(board[i]);
+
+          board[i].innerRect.x = static_cast<float>(x * SQUARE_SIZE + padding + SQUARE_SIZE);
+          board[i].innerRect.y = static_cast<float>(y * SQUARE_SIZE + padding);
+        }
+      }
+    }
+    m_Rotated = !m_Rotated;
   }
 
   void RenderHandler::drawChessBoard(const std::array<Square, NUM_SQUARES>& board) {
@@ -154,10 +195,15 @@ namespace chess_client {
   Position RenderHandler::mouseToPosition(SDL_Event* event) {
     int mouseX = static_cast<int>(event->button.x);
     int mouseY = static_cast<int>(event->button.y);
-    //LOG_PRINTF("Mouse clicked at: (%d, %d)\n", mouseX, mouseY);
+
     int posX = (mouseX - SQUARE_SIZE) / SQUARE_SIZE;
-    int posY = (mouseY) / SQUARE_SIZE;
-    //LOG_PRINTF("Returning pos: (%d, %d)\n", posX, posY);
+    int posY = mouseY / SQUARE_SIZE;
+
+    if (m_Rotated) {
+      posX = 7 - posX;
+      posY = 7 - posY;
+    }
+
     return { posX, posY };
   }
 } // namespace chess_client

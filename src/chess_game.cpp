@@ -9,7 +9,7 @@ namespace chess_client {
 
   ChessGame::ChessGame()
     : m_Board{}
-  , m_RenderHandler("Chess Game", BOARD_SIZE, BOARD_SIZE) {
+  , m_RenderHandler("Chess Game") {
     m_RenderHandler.generateInitialBoard(m_Board);
     setupInitialPieces(m_Board);
   }
@@ -113,6 +113,9 @@ namespace chess_client {
         });
 
       m_PlayerColor = m_ChessClient.getAssignedColor();
+      if (m_PlayerColor == BLACK) {
+        m_RenderHandler.rotateBoard(m_Board);
+      }
     }
 
     m_RenderHandler.init();

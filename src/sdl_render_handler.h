@@ -28,9 +28,12 @@ namespace chess_client {
     const char* m_Title;
     std::vector<CapturedPiece> m_BlackPiecesCaptured;
     std::vector<CapturedPiece> m_WhitePiecesCaptured;
+    float m_Width = 0;
+    float m_Height = 0;
+    bool m_Rotated = false;
 
   public:
-    RenderHandler(const char* title, int width, int height);
+    RenderHandler(const char* title);
     bool init();
     void drawChessBoard(const std::array<Square, NUM_SQUARES>& board);
     void capturePiece(const std::shared_ptr<Piece>& piece);
@@ -40,6 +43,7 @@ namespace chess_client {
     SDL_FRect getNextCaptureContainer(PieceColor color);
     void generateInitialBoard(std::array<Square, NUM_SQUARES>& board);
     void unselectAllSquares();
+    void rotateBoard(std::array<Square, NUM_SQUARES>& board);
     float getPadding(const Square& square) const { return 0.10f * square.rect.w; }
     Position mouseToPosition(SDL_Event* event);
   };
