@@ -1,13 +1,14 @@
+#ifdef CHESS_CLIENT_BUILD
 #pragma once
 #include "chess.h"
 #include "piece.h"
 
-namespace chess_client {
-  using GameHandler = std::function<void(
+namespace chess_online {
+using GameHandler = std::function<void(
     unsigned char, NetworkMove, std::array<unsigned char, NUM_SQUARES>, PieceColor)>;
 
-  class ChessClient {
-  private:
+class ChessClient {
+private:
     WSADATA m_WsaData;
     bool m_WsaStarted = false;
     SOCKET m_ClientSocket;
@@ -21,12 +22,13 @@ namespace chess_client {
     void listenLoop();
     void cleanWsa();
 
-  public:
+public:
     ChessClient();
     ~ChessClient();
     void initClient(GameHandler handler);
-    void writeMove(const std::shared_ptr<Piece>& piece, const Move& move);
-    void sendMove(std::array<unsigned char, NUM_SQUARES> board, const std::shared_ptr<Piece>& piece, const Move& move);
+    void writeMove(const std::shared_ptr<Piece> &piece, const Move &move);
+    void sendMove(std::array<unsigned char, NUM_SQUARES> board, const std::shared_ptr<Piece> &piece, const Move &move);
     PieceColor getAssignedColor() { return m_AssignedColor; };
-  };
-}
+};
+} // namespace chess_online
+#endif

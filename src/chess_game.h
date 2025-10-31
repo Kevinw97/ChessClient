@@ -6,19 +6,30 @@
 #include "piece.h"
 #include "queen.h"
 #include "rook.h"
-#include "sdl_render_handler.h"
-#include "sdl_audio_handler.h"
-#include "chess.h"
+#ifdef CHESS_CLIENT_BUILD
 #include "chess_client.h"
+#include "sdl_audio_handler.h"
+#include "sdl_render_handler.h"
+#endif
+#include "chess.h"
 
-namespace chess_client {
-  class ChessGame {
-  private:
+namespace chess_online {
+class ChessGame {
+private:
     bool m_InProgress = true;
     bool m_Running = true;
+    bool m_Checkmate = false;
     std::array<Square, NUM_SQUARES> m_Board;
+#ifdef CHESS_CLIENT_BUILD
     RenderHandler m_RenderHandler;
     AudioHandler m_AudioHandler;
+    ChessClient m_ChessClient;
+    bool m_IsOnline = false;
+    std::vector<Move> m_MovesForSelected;
+#endif
+#ifdef CHESS_SERVER_BUILD
+    std::mutex m_Mutex;
+#endif
     std::set<std::shared_ptr<Piece>> m_WhitePieces;
     std::set<std::shared_ptr<Piece>> m_BlackPieces;
     std::unordered_map<unsigned char, std::shared_ptr<Piece>> m_Pieces;
@@ -26,43 +37,48 @@ namespace chess_client {
     std::shared_ptr<Piece> m_WhiteKing = nullptr;
     PieceColor m_PlayerColor = WHITE;
     PieceColor m_CurrentTurnColor = WHITE;
-    Square* m_SelectedSquare = nullptr;
-    std::vector<Move> m_MovesForSelected;
+    Square *m_SelectedSquare = nullptr;
     std::vector<Action> m_ActionHistory;
 
-    bool m_IsOnline = false;
-    ChessClient m_ChessClient;
+#ifdef CHESS_SERVER_BUILD
+    void generateInitialBoard(std::array<Square, 64> &board);
+#endif
+    void setupInitialPieces(std::array<Square, NUM_SQUARES> &board);
 
-    void setupInitialPieces(std::array<Square, NUM_SQUARES>& board);
+#ifdef CHESS_CLIENT_BUILD
     void gameSetup();
     void gameLoop();
-    void listenLoop();
-    void handleMouseClick(SDL_Event* event);
-    bool isCurrentPlayersTurn();
-    bool isValidMove(const std::shared_ptr<Piece>& piece, const Move& move);
-    bool isKingInCheck(std::array<Square, NUM_SQUARES>& board, PieceColor Color);
-    void processMove(const std::shared_ptr<Piece>& piece, const Move& move);
+    void handleMouseClick(SDL_Event *event);
     void clientMoveHandler(
-      unsigned char pieceKey,
-      NetworkMove networkMove,
-      std::array<unsigned char, NUM_SQUARES> serializedBoard,
-      PieceColor turnColor);
+        unsigned char pieceKey,
+        NetworkMove networkMove,
+        std::array<unsigned char, NUM_SQUARES> serializedBoard,
+        PieceColor turnColor);
     void selectSource(int x, int y);
     void selectDestination(int x, int y);
+    void choosePawnPromotion(const std::shared_ptr<Piece> &piece, Move &move);
     void unselectAllSquares();
     void undoMove();
-    Move decodeMove(NetworkMove data);
     void resetGame();
-    std::shared_ptr<Piece> getPiece(unsigned char pieceKey);
-    bool validateBoard(std::array<unsigned char, NUM_SQUARES> board);
-    void choosePawnPromotion(const std::shared_ptr<Piece>& piece, Move& move);
-    std::array<unsigned char, NUM_SQUARES> serializeBoard();
-
-  public:
+#endif
+public:
     ChessGame();
+#ifdef CHESS_CLIENT_BUILD
     void run();
+#endif
+#ifdef CHESS_SERVER_BUILD
+    std::mutex &getMutex() { return m_Mutex; };
+#endif
+    bool isValidMove(const std::shared_ptr<Piece> &piece, const Move &move);
+    bool isKingInCheck(std::array<Square, NUM_SQUARES> &board, PieceColor Color);
+    bool validateBoard(std::array<unsigned char, NUM_SQUARES> board);
+    bool isCurrentPlayersTurn();
+    void processMove(const std::shared_ptr<Piece> &piece, const Move &move);
+    bool isCheckmate();
+    std::shared_ptr<Piece> getPiece(unsigned char pieceKey);
+    PieceColor getTurn();
+    std::array<unsigned char, NUM_SQUARES> serializeBoard();
+    Move decodeMove(NetworkMove data);
+};
 
-    friend class ChessClient;
-  };
-
-} // namespace chess_client
+} // namespace chess_online

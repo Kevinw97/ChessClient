@@ -1,23 +1,28 @@
 #pragma once
+#ifdef CHESS_CLIENT_BUILD
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
-#include <iostream>
-#include <array>
-#include <memory>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <thread>
-#include <functional>
-#include <unordered_map>
-#include <set>
+#endif
+#include <array>
 #include <cassert>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <thread>
+#include <unordered_map>
 
+#ifdef CHESS_CLIENT_BUILD
 // Link the Winsock library
 #pragma comment(lib, "Ws2_32.lib")
-
 #include <windows.h>
-#include <cstdlib>
+#endif
+
 #include <algorithm>
+#include <cstdlib>
 #include <string>
 
 #define CHESS_LOGGING 1
@@ -30,20 +35,20 @@
 #define LOG_PRINTF(...)
 #endif
 
-namespace chess_client {
+namespace chess_online {
 
-  const int BOARD_SIZE = 960;
-  const int NUM_SQUARES = 64;
-  const int SQUARE_SIZE = BOARD_SIZE / 8;
+const int BOARD_SIZE = 960;
+const int NUM_SQUARES = 64;
+const int SQUARE_SIZE = BOARD_SIZE / 8;
 
-  class Piece;
+class Piece;
 
-  enum PieceColor : bool {
+enum PieceColor : bool {
     WHITE,
     BLACK
-  };
+};
 
-  enum PieceType : unsigned char {
+enum PieceType : unsigned char {
     NONE,
     PAWN,
     ROOK,
@@ -51,14 +56,14 @@ namespace chess_client {
     BISHOP,
     QUEEN,
     KING
-  };
+};
 
-  struct Position {
+struct Position {
     int x;
     int y;
-  };
+};
 
-  struct Move {
+struct Move {
     Position src;
     Position dst;
     std::shared_ptr<Piece> capturedPiece;
@@ -67,10 +72,10 @@ namespace chess_client {
     std::shared_ptr<Piece> castlingRook;
     PieceType promoteType;
     bool firstMove;
-  };
+};
 
 #pragma pack(push, 1)
-  struct NetworkMove {
+struct NetworkMove {
     Position src;
     Position dst;
     unsigned char capturedPiece;
@@ -79,57 +84,60 @@ namespace chess_client {
     unsigned char castlingRook;
     PieceType promoteType;
     bool firstMove;
-  };
+};
 #pragma pack(pop)
 
-  struct Action {
+struct Action {
     std::shared_ptr<Piece> piece;
     struct Move move;
-  };
-
-  struct RGBAColor {
+};
+#ifdef CHESS_CLIENT_BUILD
+struct RGBAColor {
     Uint8 r;
     Uint8 g;
     Uint8 b;
     Uint8 a;
-  };
+};
+#endif
 
-  struct Square {
+struct Square {
     union {
-      Position pos;
-      struct {
-        int x;
-        int y;
-      };
+        Position pos;
+        struct {
+            int x;
+            int y;
+        };
     };
+#ifdef CHESS_CLIENT_BUILD
     SDL_FRect rect;
     SDL_FRect innerRect;
     RGBAColor Color;
     bool isHighlighted;
+#endif
     std::shared_ptr<Piece> occupyingPiece;
-  };
+};
 
-  inline bool isValidPosition(Position pos) {
+inline bool isValidPosition(Position pos) {
     return (pos.x >= 0 && pos.x < 8 && pos.y >= 0 && pos.y < 8);
-  }
+}
 
-  inline int posToIndex(const Position &pos) {
+inline int posToIndex(const Position &pos) {
     if (!isValidPosition(pos)) {
-      LOG_COUT("Invalid square position passed to posToIndex");
-      return -1;
+        LOG_COUT("Invalid square position passed to posToIndex");
+        return -1;
     }
     return pos.y * 8 + pos.x;
-  }
+}
 
-  inline bool positionIsOccupied(const std::array<Square, NUM_SQUARES>& board, const Position& pos) {
+inline bool positionIsOccupied(const std::array<Square, NUM_SQUARES> &board, const Position &pos) {
     return board[posToIndex(pos)].occupyingPiece != nullptr;
-  }
+}
 
-  inline Square* getSquareAtPosition(std::array<Square, NUM_SQUARES>& board, const Position& pos) {
+inline Square *getSquareAtPosition(std::array<Square, NUM_SQUARES> &board, const Position &pos) {
     int index = posToIndex(pos);
     if (index == -1) {
-      return nullptr;
+        return nullptr;
     }
     return &board[index];
-  }
-} // namespace chess_client
+}
+} // namespace chess_online
